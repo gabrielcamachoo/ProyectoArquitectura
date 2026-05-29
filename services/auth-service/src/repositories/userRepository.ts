@@ -8,6 +8,11 @@ export class UserRepository {
     return user;
   }
 
+  async update(user: User): Promise<User> {
+    this.users.set(user.id, user);
+    return user;
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     return [...this.users.values()].find((u) => u.institutionalEmail === email) ?? null;
   }

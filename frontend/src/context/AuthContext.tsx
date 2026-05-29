@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useMemo, useState } from 'react';
 
 type Role = 'student' | 'teacher' | 'admin';
 
@@ -9,5 +9,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = useMemo(() => ({ role, setRole }), [role]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-export const useAuth = () => useContext(AuthContext);
+export { AuthContext };

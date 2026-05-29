@@ -105,7 +105,7 @@ services:
     env_file: .env
     environment:
       PORT: 3006
-      DATABASE_READ_URL: ******postgres-replica:5432/proyecto
+      DATABASE_READ_URL: postgresql://postgres@postgres-replica:5432/proyecto
     ports:
       - '3006:3000'
 

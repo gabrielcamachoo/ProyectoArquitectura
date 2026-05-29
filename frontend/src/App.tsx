@@ -1,7 +1,8 @@
 import './App.css';
 import RoleSwitcher from './components/RoleSwitcher';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { useRoleView } from './hooks/useRoleView';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
+import { getRoleView } from './hooks/useRoleView';
 
 function Main() {
   const { role } = useAuth();
@@ -9,7 +10,7 @@ function Main() {
     <>
       <h1>Plataforma de Aprendizaje Adaptativo y Colaborativo</h1>
       <RoleSwitcher />
-      {useRoleView(role)}
+      {getRoleView(role)}
     </>
   );
 }

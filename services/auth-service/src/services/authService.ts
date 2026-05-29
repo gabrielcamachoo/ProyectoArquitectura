@@ -79,6 +79,6 @@ export class AuthService {
   async anonymizeUser(id: string) {
     const user = await this.users.findById(id);
     if (!user) throw new Error('not_found');
-    await this.users.create({ ...user, fullName: `anon-${id}`, institutionalEmail: `${id}@deleted.local`, status: 'inactive' });
+    await this.users.update({ ...user, fullName: `anon-${id}`, institutionalEmail: `${id}@deleted.local`, status: 'inactive' });
   }
 }

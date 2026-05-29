@@ -12,14 +12,14 @@ paths:
       responses:
         '200': { description: OK }
   /evaluations/{id}/attempts:
-    get:
+    post:
       responses:
-        '200': { description: OK }
+        '201': { description: Created }
   /attempts/{id}/submit:
-    get:
+    put:
       responses:
         '200': { description: OK }
   /attempts/{id}/grade:
-    get:
+    put:
       responses:
         '200': { description: OK }
