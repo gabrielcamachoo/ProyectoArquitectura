@@ -8,8 +8,10 @@ export const authGuard = (authService: AuthService) => async (req: Request, res:
   if (await authService.isBlacklisted(token)) return res.status(401).json({ error: 'blacklisted' });
   try {
     const payload = authService.verifyToken(token) as { sub: string; role: string };
-    (req as Request & { userId: string; role: string }).userId = payload.sub;
-    (req as Request & { userId: string; role: string }).role = payload.role;
+    const authenticated = req as Request & { userId: string; role: string; accessToken: string };
+    authenticated.userId = payload.sub;
+    authenticated.role = payload.role;
+    authenticated.accessToken = token;
     next();
   } catch {
     res.status(401).json({ error: 'invalid_token' });
@@ -20,4 +22,17 @@ export const requireRole = (...roles: string[]) => (req: Request, res: Response,
   const role = (req as Request & { role?: string }).role;
   if (!role || !roles.includes(role)) return res.status(403).json({ error: 'forbidden' });
   next();
+};
+
+export const requireSelfOrRole = (...roles: string[]) => (req: Request, res: Response, next: NextFunction) => {
+  const context = req as Request & { userId?: string; role?: string };
+  if (context.userId === req.params.id) {
+    next();
+    return;
+  }
+  if (context.role && roles.includes(context.role)) {
+    next();
+    return;
+  }
+  res.status(403).json({ error: 'forbidden' });
 };

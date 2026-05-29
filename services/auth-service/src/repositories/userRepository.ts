@@ -3,6 +3,10 @@ import { User } from '../domain/types';
 export class UserRepository {
   private users = new Map<string, User>();
 
+  async list(): Promise<User[]> {
+    return [...this.users.values()];
+  }
+
   async create(user: User): Promise<User> {
     this.users.set(user.id, user);
     return user;

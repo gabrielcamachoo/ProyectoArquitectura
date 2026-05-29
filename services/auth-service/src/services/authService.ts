@@ -2,12 +2,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID, generateKeyPairSync } from 'crypto';
 import { UserRepository } from '../repositories/userRepository';
-import { Role, User } from '../domain/types';
+import { Role, User, UserExport } from '../domain/types';
 import { TokenStore } from './tokenStore';
 
 const generated = generateKeyPairSync('rsa', { modulusLength: 2048 });
-const PRIVATE_KEY = process.env.JWT_PRIVATE_KEY || generated.privateKey.export({ type: 'pkcs1', format: 'pem' }).toString();
-const PUBLIC_KEY = process.env.JWT_PUBLIC_KEY || generated.publicKey.export({ type: 'spki', format: 'pem' }).toString();
+const normalizeKey = (value: string | undefined, fallback: string) => (value ? value.replace(/\\n/g, '\n') : fallback);
+const PRIVATE_KEY = normalizeKey(process.env.JWT_PRIVATE_KEY, generated.privateKey.export({ type: 'pkcs1', format: 'pem' }).toString());
+const PUBLIC_KEY = normalizeKey(process.env.JWT_PUBLIC_KEY, generated.publicKey.export({ type: 'spki', format: 'pem' }).toString());
 
 export class AuthService {
   constructor(private users: UserRepository, private tokenStore: TokenStore) {}
@@ -70,10 +71,13 @@ export class AuthService {
     return Boolean(await this.tokenStore.get(`blacklist:${token}`));
   }
 
-  async exportUserData(id: string) {
+  async exportUserData(id: string): Promise<UserExport> {
     const user = await this.users.findById(id);
     if (!user) throw new Error('not_found');
-    return user;
+    return {
+      ...user,
+      passwordHashMasked: '************'
+    };
   }
 
   async anonymizeUser(id: string) {

@@ -1,4 +1,5 @@
 import amqp from 'amqplib';
+import { recordEvaluationCompletion } from './controllers/mainController';
 
 export async function startProgressConsumer(url?: string) {
   if (!url) return;
@@ -10,6 +11,12 @@ export async function startProgressConsumer(url?: string) {
   await ch.bindQueue(queue, 'academic.events', 'evaluacion.completada.v1');
   await ch.consume(queue, (msg) => {
     if (!msg) return;
+    try {
+      const event = JSON.parse(msg.content.toString()) as { student_id: string; course_id: string; score: number };
+      recordEvaluationCompletion({ studentId: event.student_id, courseId: event.course_id, score: event.score });
+    } catch {
+      console.log(JSON.stringify({ level: 'error', category: 'technical_log', event: 'progress-dlq', requestId: msg.properties.messageId ?? 'n/a' }));
+    }
     ch.ack(msg);
   });
 }

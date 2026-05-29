@@ -9,12 +9,13 @@ export class CqrsAnalyticsService {
   }
 
   async getCourseDashboard(courseId: string) {
+    const seed = courseId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
     return {
       source: 'read-replica',
       readDb: this.readDbUrl,
       courseId,
-      completionRate: 0,
-      activeStudents: 0
+      completionRate: seed % 100,
+      activeStudents: seed % 27
     };
   }
 
@@ -23,7 +24,10 @@ export class CqrsAnalyticsService {
       source: 'read-replica',
       readDb: this.readDbUrl,
       courseId,
-      students: [] as Array<{ studentId: string; percentage: number }>
+      students: [
+        { studentId: `${courseId}-student-1`, percentage: 72 },
+        { studentId: `${courseId}-student-2`, percentage: 88 }
+      ] as Array<{ studentId: string; percentage: number }>
     };
   }
 }

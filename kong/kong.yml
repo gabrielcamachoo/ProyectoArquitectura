@@ -43,6 +43,7 @@ services:
 plugins:
   - name: jwt
     config:
+      key_claim_name: sub
       claims_to_verify:
         - exp
   - name: rate-limiting
@@ -50,8 +51,4 @@ plugins:
       minute: 100
       limit_by: consumer
       policy: local
-  - name: request-transformer
-    config:
-      add:
-        headers:
-          - x-correlation-id:$(request_id)
+  - name: correlation-id

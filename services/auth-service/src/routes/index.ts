@@ -3,7 +3,7 @@ import { AuthController } from '../controllers/authController';
 import { AuthService } from '../services/authService';
 import { UserRepository } from '../repositories/userRepository';
 import { TokenStore } from '../services/tokenStore';
-import { authGuard, requireRole } from '../middleware/auth';
+import { authGuard, requireSelfOrRole } from '../middleware/auth';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -16,7 +16,7 @@ router.post('/auth/register', authLimiter, controller.register);
 router.post('/auth/login', authLimiter, controller.login);
 router.post('/auth/refresh', authLimiter, controller.refresh);
 router.post('/auth/logout', authLimiter, guard, controller.logout);
-router.get('/users/:id/data', authLimiter, guard, requireRole('admin'), controller.exportData);
-router.delete('/users/:id', authLimiter, guard, requireRole('admin'), controller.suppress);
+router.get('/users/:id/data', authLimiter, guard, requireSelfOrRole('admin'), controller.exportData);
+router.delete('/users/:id', authLimiter, guard, requireSelfOrRole('admin'), controller.suppress);
 
 export default router;

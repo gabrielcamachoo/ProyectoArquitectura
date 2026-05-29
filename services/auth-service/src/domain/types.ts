@@ -11,3 +11,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UserExport extends Omit<User, 'passwordHash'> {
+  passwordHashMasked: string;
+}
