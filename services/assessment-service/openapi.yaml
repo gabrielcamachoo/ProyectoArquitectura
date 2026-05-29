@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: assessment-service
+  version: 1.0.0
+paths:
+  /evaluations:
+    get:
+      responses:
+        '200': { description: OK }
+  /evaluations/{id}:
+    get:
+      responses:
+        '200': { description: OK }
+  /evaluations/{id}/attempts:
+    get:
+      responses:
+        '200': { description: OK }
+  /attempts/{id}/submit:
+    get:
+      responses:
+        '200': { description: OK }
+  /attempts/{id}/grade:
+    get:
+      responses:
+        '200': { description: OK }

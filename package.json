@@ -1,0 +1,13 @@
+{
+  "name": "proyectoarquitectura",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend"
+  ],
+  "scripts": {
+    "test": "npm run test -ws --if-present",
+    "build": "npm run build -ws --if-present"
+  }
+}

@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: notification-service
+  version: 1.0.0
+paths:
+  /notifications/user/{userId}:
+    get:
+      responses:
+        '200': { description: OK }
+  /notifications/{id}/read:
+    get:
+      responses:
+        '200': { description: OK }

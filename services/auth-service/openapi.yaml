@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: Auth Service API
+  version: 1.0.0
+servers:
+  - url: / 
+paths:
+  /auth/register:
+    post:
+      summary: Registro de usuarios
+      responses:
+        '201': { description: Created }
+  /auth/login:
+    post:
+      summary: Inicio de sesión
+      responses:
+        '200': { description: OK }
+  /auth/refresh:
+    post:
+      summary: Renovación de token
+      responses:
+        '200': { description: OK }
+  /auth/logout:
+    post:
+      summary: Cerrar sesión
+      responses:
+        '204': { description: No Content }
+  /users/{id}/data:
+    get:
+      summary: Exportar datos personales
+      responses:
+        '200': { description: OK }
+  /users/{id}:
+    delete:
+      summary: Supresión de datos
+      responses:
+        '204': { description: No Content }

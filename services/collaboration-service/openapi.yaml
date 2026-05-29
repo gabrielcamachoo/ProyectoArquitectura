@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: collaboration-service
+  version: 1.0.0
+paths:
+  /forums:
+    get:
+      responses:
+        '200': { description: OK }
+  /forums/{id}/posts:
+    get:
+      responses:
+        '200': { description: OK }
+  /study-groups:
+    get:
+      responses:
+        '200': { description: OK }
+  /tutoring:
+    get:
+      responses:
+        '200': { description: OK }

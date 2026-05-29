@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: course-service
+  version: 1.0.0
+paths:
+  /courses:
+    get:
+      responses:
+        '200': { description: OK }
+  /courses/{id}:
+    get:
+      responses:
+        '200': { description: OK }
+  /courses/{id}/modules:
+    get:
+      responses:
+        '200': { description: OK }
+  /courses/{id}/modules/{moduleId}/materials:
+    get:
+      responses:
+        '200': { description: OK }

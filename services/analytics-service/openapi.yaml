@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: analytics-service
+  version: 1.0.0
+paths:
+  /analytics/course/{courseId}:
+    get:
+      responses:
+        '200': { description: OK }
+  /analytics/course/{courseId}/students:
+    get:
+      responses:
+        '200': { description: OK }

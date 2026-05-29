@@ -1,0 +1,57 @@
+_format_version: '3.0'
+services:
+  - name: auth-service
+    url: http://auth-service:3000
+    routes:
+      - name: auth-routes
+        paths: ['/auth', '/users']
+  - name: course-service
+    url: http://course-service:3000
+    routes:
+      - name: course-routes
+        paths: ['/courses']
+  - name: assessment-service
+    url: http://assessment-service:3000
+    routes:
+      - name: assessment-routes
+        paths: ['/evaluations', '/attempts']
+  - name: progress-service
+    url: http://progress-service:3000
+    routes:
+      - name: progress-routes
+        paths: ['/progress']
+  - name: adaptive-service
+    url: http://adaptive-service:3000
+    routes:
+      - name: adaptive-routes
+        paths: ['/recommendations']
+  - name: collaboration-service
+    url: http://collaboration-service:3000
+    routes:
+      - name: collaboration-routes
+        paths: ['/forums', '/study-groups', '/tutoring']
+  - name: analytics-service
+    url: http://analytics-service:3000
+    routes:
+      - name: analytics-routes
+        paths: ['/analytics']
+  - name: notification-service
+    url: http://notification-service:3000
+    routes:
+      - name: notification-routes
+        paths: ['/notifications']
+plugins:
+  - name: jwt
+    config:
+      claims_to_verify:
+        - exp
+  - name: rate-limiting
+    config:
+      minute: 100
+      limit_by: consumer
+      policy: local
+  - name: request-transformer
+    config:
+      add:
+        headers:
+          - x-correlation-id:$(request_id)

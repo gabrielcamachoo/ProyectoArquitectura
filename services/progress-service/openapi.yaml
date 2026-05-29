@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: progress-service
+  version: 1.0.0
+paths:
+  /progress/student/{studentId}/course/{courseId}:
+    get:
+      responses:
+        '200': { description: OK }
+  /progress/student/{studentId}:
+    get:
+      responses:
+        '200': { description: OK }
