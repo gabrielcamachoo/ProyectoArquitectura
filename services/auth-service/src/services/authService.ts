@@ -6,7 +6,12 @@ import { Role, User, UserExport } from '../domain/types';
 import { TokenStore } from './tokenStore';
 
 const generated = generateKeyPairSync('rsa', { modulusLength: 2048 });
-const normalizeKey = (value: string | undefined, fallback: string) => (value ? value.replace(/\\n/g, '\n') : fallback);
+const isPlaceholderKey = (value?: string) =>
+  !value || value.includes('<rsa-') || !value.includes('BEGIN');
+const normalizeKey = (value: string | undefined, fallback: string): string => {
+  if (isPlaceholderKey(value)) return fallback;
+  return value!.replace(/\\n/g, '\n');
+};
 const PRIVATE_KEY = normalizeKey(process.env.JWT_PRIVATE_KEY, generated.privateKey.export({ type: 'pkcs1', format: 'pem' }).toString());
 const PUBLIC_KEY = normalizeKey(process.env.JWT_PUBLIC_KEY, generated.publicKey.export({ type: 'spki', format: 'pem' }).toString());
 
@@ -38,10 +43,14 @@ export class AuthService {
     if (!user) throw new Error('invalid_credentials');
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new Error('invalid_credentials');
-    const token = jwt.sign({ sub: user.id, role: user.role }, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1h' });
+    const token = jwt.sign({ sub: user.id, role: user.role, iss: 'auth-jwt-key' }, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1h' });
     const refreshToken = randomUUID();
     await this.tokenStore.set(`refresh:${refreshToken}`, user.id, 60 * 60 * 24 * 7);
-    return { token, refreshToken };
+    return {
+      token,
+      refreshToken,
+      user: { id: user.id, fullName: user.fullName, email: user.institutionalEmail, role: user.role }
+    };
   }
 
   async refresh(refreshToken: string) {
@@ -50,7 +59,7 @@ export class AuthService {
     await this.tokenStore.del(`refresh:${refreshToken}`);
     const user = await this.users.findById(userId);
     if (!user) throw new Error('invalid_refresh');
-    const token = jwt.sign({ sub: user.id, role: user.role }, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1h' });
+    const token = jwt.sign({ sub: user.id, role: user.role, iss: 'auth-jwt-key' }, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1h' });
     const rotatedRefreshToken = randomUUID();
     await this.tokenStore.set(`refresh:${rotatedRefreshToken}`, user.id, 60 * 60 * 24 * 7);
     return { token, refreshToken: rotatedRefreshToken };
@@ -84,5 +93,9 @@ export class AuthService {
     const user = await this.users.findById(id);
     if (!user) throw new Error('not_found');
     await this.users.update({ ...user, fullName: `anon-${id}`, institutionalEmail: `${id}@deleted.local`, status: 'inactive' });
+  }
+
+  async listUsers() {
+    return this.users.listPublic();
   }
 }

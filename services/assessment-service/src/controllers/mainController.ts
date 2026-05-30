@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
+import { publishEvaluationCompleted } from '../messaging/publisher';
 
 type AttemptStatus = 'created' | 'in_progress' | 'submitted' | 'graded' | 'annulled';
 
@@ -24,7 +25,25 @@ interface Attempt {
 const evaluations = new Map<string, Evaluation>();
 const attempts = new Map<string, Attempt>();
 
-export const listEvaluations = (_req: Request, res: Response) => res.json({ items: [...evaluations.values()] });
+const SEED_COURSE = '00000000-0000-4000-8000-000000000001';
+
+const ensureSeed = () => {
+  if (evaluations.size > 0) return;
+  const evaluation: Evaluation = {
+    id: randomUUID(),
+    courseId: SEED_COURSE,
+    title: 'Parcial 1 — Arquitectura de microservicios',
+    type: 'quiz',
+    weight: 30,
+    deadline: new Date(Date.now() + 7 * 86400000).toISOString()
+  };
+  evaluations.set(evaluation.id, evaluation);
+};
+
+export const listEvaluations = (_req: Request, res: Response) => {
+  ensureSeed();
+  res.json({ items: [...evaluations.values()] });
+};
 
 export const createEvaluation = (req: Request, res: Response) => {
   const evaluation: Evaluation = {
@@ -74,10 +93,25 @@ export const submitAttempt = (req: Request, res: Response) => {
   return res.json(updated);
 };
 
-export const gradeAttempt = (req: Request, res: Response) => {
+const emitEvaluationCompleted = async (attempt: Attempt, score: number) => {
+  const evaluation = evaluations.get(attempt.evaluationId);
+  if (!evaluation) return;
+  await publishEvaluationCompleted({
+    version: 'v1',
+    student_id: attempt.studentId,
+    evaluation_id: attempt.evaluationId,
+    course_id: evaluation.courseId,
+    score,
+    submitted_at: attempt.submittedAt ?? new Date().toISOString()
+  });
+};
+
+export const gradeAttempt = async (req: Request, res: Response) => {
   const attempt = attempts.get(req.params.id);
   if (!attempt || attempt.status !== 'submitted') return res.status(409).json({ error: 'invalid_state' });
-  const updated = { ...attempt, status: 'graded' as const, score: Number(req.body.score ?? 0) };
+  const score = Number(req.body.score ?? 0);
+  const updated = { ...attempt, status: 'graded' as const, score };
   attempts.set(updated.id, updated);
+  await emitEvaluationCompleted(updated, score);
   return res.json(updated);
 };

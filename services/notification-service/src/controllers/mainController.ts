@@ -24,12 +24,8 @@ export const listNotifications = (req: Request, res: Response) => {
 };
 
 export const markRead = (req: Request, res: Response) => {
-	const notification = notifications.get(req.params.id) ?? createNotification({
-		userId: req.body.userId ?? 'system',
-		type: req.body.type ?? 'academic_event',
-		content: req.body.content ?? { id: req.params.id },
-		read: false
-	});
+	const notification = notifications.get(req.params.id);
+	if (!notification) return res.status(404).json({ error: 'not_found' });
 	const updated = { ...notification, read: true };
 	notifications.set(updated.id, updated);
 	return res.json(updated);

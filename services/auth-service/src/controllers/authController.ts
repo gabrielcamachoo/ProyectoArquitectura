@@ -15,11 +15,16 @@ export class AuthController {
 
   login = async (req: Request, res: Response) => {
     try {
-      const { token, refreshToken } = await this.auth.login(req.body.email, req.body.password);
-      res.json({ token, refreshToken });
+      const result = await this.auth.login(req.body.email, req.body.password);
+      res.json(result);
     } catch {
       res.status(401).json({ error: 'invalid_credentials' });
     }
+  };
+
+  listUsers = async (_req: Request, res: Response) => {
+    const items = await this.auth.listUsers();
+    res.json({ items });
   };
 
   refresh = async (req: Request, res: Response) => {

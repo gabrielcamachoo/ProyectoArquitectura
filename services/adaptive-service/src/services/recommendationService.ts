@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import CircuitBreaker from 'opossum';
 import { computeRecommendation, EvaluationCompletedEvent } from '../rules/recommendationEngine';
+import { publishRecommendationGenerated } from '../messaging/publisher';
 
 const cacheTtl = 300;
 
@@ -37,7 +38,15 @@ export class RecommendationService {
     const recommendation = await this.breaker.fire(event);
     await this.set(`recommendations:${event.student_id}`, recommendation, cacheTtl);
     await this.set(`dashboard:${event.course_id}`, recommendation, cacheTtl);
-    return JSON.parse(recommendation);
+    const parsed = JSON.parse(recommendation);
+    await publishRecommendationGenerated({
+      version: 'v1',
+      user_id: event.student_id,
+      userId: event.student_id,
+      type: 'recomendacion',
+      content: parsed
+    });
+    return parsed;
   }
 
   async getStudentRecommendations(studentId: string) {

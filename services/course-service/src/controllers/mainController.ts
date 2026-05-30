@@ -34,10 +34,29 @@ const courses = new Map<string, Course>();
 const modules = new Map<string, Module[]>();
 const materials = new Map<string, Material[]>();
 
+const SEED_COURSE_ID = '00000000-0000-4000-8000-000000000001';
+
 const ensureSeed = () => {
 	if (courses.size > 0) return;
-	const course: Course = { id: randomUUID(), name: 'Arquitectura de Software', description: 'Curso base', status: 'published', publishedAt: new Date().toISOString() };
+	const course: Course = {
+		id: SEED_COURSE_ID,
+		name: 'Arquitectura de Software',
+		description: 'Diseño de sistemas escalables, patrones y microservicios — Pontificia Universidad Javeriana',
+		teacherId: 'teacher-demo',
+		status: 'published',
+		publishedAt: new Date().toISOString()
+	};
 	courses.set(course.id, course);
+	const mod1: Module = { id: randomUUID(), courseId: course.id, title: 'Fundamentos y patrones', order: 1, status: 'published' };
+	const mod2: Module = { id: randomUUID(), courseId: course.id, title: 'Microservicios y mensajería', order: 2, status: 'published' };
+	modules.set(course.id, [mod1, mod2]);
+	materials.set(`${course.id}:${mod1.id}`, [
+		{ id: randomUUID(), moduleId: mod1.id, title: 'Introducción a la arquitectura', type: 'video', url: 'https://example.com/mod1-intro', visibility: 'public' },
+		{ id: randomUUID(), moduleId: mod1.id, title: 'Patrones GoF — guía PDF', type: 'document', url: 'https://example.com/mod1-pdf', visibility: 'public' }
+	]);
+	materials.set(`${course.id}:${mod2.id}`, [
+		{ id: randomUUID(), moduleId: mod2.id, title: 'RabbitMQ y eventos', type: 'video', url: 'https://example.com/mod2-rmq', visibility: 'public' }
+	]);
 };
 
 export const listCourses = (_req: Request, res: Response) => {

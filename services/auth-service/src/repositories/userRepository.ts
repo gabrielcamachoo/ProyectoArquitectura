@@ -4,7 +4,18 @@ export class UserRepository {
   private users = new Map<string, User>();
 
   async list(): Promise<User[]> {
-    return [...this.users.values()];
+    return [...this.users.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  async listPublic(): Promise<Array<Pick<User, 'id' | 'fullName' | 'institutionalEmail' | 'role' | 'status' | 'createdAt'>>> {
+    return (await this.list()).map(({ id, fullName, institutionalEmail, role, status, createdAt }) => ({
+      id,
+      fullName,
+      institutionalEmail,
+      role,
+      status,
+      createdAt
+    }));
   }
 
   async create(user: User): Promise<User> {

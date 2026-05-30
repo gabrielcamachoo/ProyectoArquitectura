@@ -6,15 +6,7 @@ consumers:
       - key: auth-jwt-key
         algorithm: RS256
         rsa_public_key: |
-          -----BEGIN PUBLIC KEY-----
-          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1pg+R2dcxKb0VIphRZZ3
-          B4hQIhPJh0/y2n7xIWI6n6uBILJBdC+F8jzO4bDgXLsPmX1sLIHBRqI0tk0jT5kU
-          NcMXgAUU6/324y1Pcj5yJRcbiWqP136PniqJJwOwEiyd4x788Jk1EDt+KZaA/9pO
-          Yf2bRPDLEdVcYKHINiP31a8ovCSkp62IVg10xKYtBKQjF8mPKEiCij0l9LH9BCGO
-          M8hiuQCcLFqcNtoBAzNwX1gVdLmTUsfqmn+od7aPUhUfF+93dfdkbysY1PK3jFTp
-          4fnxyxnbeFMF23sM0CkBaoU9777hlx0UAGk+WLmR+usalMEfWAUzr0B/wn8wO+lH
-          RQIDAQAB
-          -----END PUBLIC KEY-----
+__JWT_PUBLIC_KEY__
 
 services:
   - name: auth-service
@@ -34,11 +26,7 @@ services:
           - /users
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: course-service
     url: http://course-service:3000
@@ -48,11 +36,7 @@ services:
           - /courses
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: assessment-service
     url: http://assessment-service:3000
@@ -63,11 +47,7 @@ services:
           - /attempts
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: progress-service
     url: http://progress-service:3000
@@ -77,11 +57,7 @@ services:
           - /progress
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: adaptive-service
     url: http://adaptive-service:3000
@@ -91,11 +67,7 @@ services:
           - /recommendations
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: collaboration-service
     url: http://collaboration-service:3000
@@ -107,11 +79,7 @@ services:
           - /tutoring
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: analytics-service
     url: http://analytics-service:3000
@@ -121,11 +89,7 @@ services:
           - /analytics
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
   - name: notification-service
     url: http://notification-service:3000
@@ -135,11 +99,7 @@ services:
           - /notifications
         strip_path: false
         plugins:
-          - name: jwt
-            config:
-              key_claim_name: iss
-              claims_to_verify:
-                - exp
+__JWT_PLUGIN__
 
 plugins:
   - name: correlation-id
