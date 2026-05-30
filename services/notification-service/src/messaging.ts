@@ -26,7 +26,8 @@ export async function startNotificationConsumer(url?: string) {
       createNotification({
         userId: payload.user_id ?? payload.userId ?? 'system',
         type: payload.type ?? 'academic_event',
-        content: payload.content ?? payload
+        content: payload.content ?? payload,
+        read: false
       });
       console.log(JSON.stringify({ event: 'notification-event', routingKey: msg.fields.routingKey, category: 'business_log' }));
     } catch (error) {
