@@ -4,27 +4,27 @@ import { Button } from '../ui/Button';
 
 const navByRole: Record<string, { to: string; label: string; icon: string }[]> = {
   student: [
-    { to: '/app', label: 'Inicio', icon: '🏠' },
-    { to: '/app/cursos', label: 'Cursos', icon: '📚' },
-    { to: '/app/evaluaciones', label: 'Evaluaciones', icon: '📝' },
-    { to: '/app/recomendaciones', label: 'Recomendaciones', icon: '✨' },
-    { to: '/app/colaboracion', label: 'Colaboración', icon: '💬' },
-    { to: '/app/tutorias', label: 'Tutorías', icon: '🎓' },
-    { to: '/app/notificaciones', label: 'Notificaciones', icon: '🔔' },
+    { to: '/app/student', label: 'Inicio', icon: '🏠' },
+    { to: '/app/student/courses', label: 'Cursos', icon: '📚' },
+    { to: '/app/student/evaluaciones', label: 'Evaluaciones', icon: '📝' },
+    { to: '/app/student/recommendations', label: 'Recomendaciones', icon: '✨' },
+    { to: '/app/student/collaboration', label: 'Colaboración', icon: '💬' },
+    { to: '/app/student/tutoring', label: 'Tutorías', icon: '🎓' },
+    { to: '/app/student/notifications', label: 'Notificaciones', icon: '🔔' },
     { to: '/app/privacidad', label: 'Mis datos (Ley 1581)', icon: '🔒' }
   ],
   teacher: [
-    { to: '/app', label: 'Panel docente', icon: '📊' },
-    { to: '/app/cursos', label: 'Mis cursos', icon: '📚' },
-    { to: '/app/evaluaciones', label: 'Evaluaciones', icon: '📝' },
+    { to: '/app/teacher', label: 'Panel docente', icon: '📊' },
+    { to: '/app/teacher/courses', label: 'Mis cursos', icon: '📚' },
+    { to: '/app/teacher/create-evaluation', label: 'Evaluaciones', icon: '📝' },
     { to: '/app/analytics', label: 'Analítica', icon: '📈' },
     { to: '/app/colaboracion', label: 'Foros', icon: '💬' },
     { to: '/app/tutorias', label: 'Tutorías', icon: '🎓' },
     { to: '/app/privacidad', label: 'Mis datos', icon: '🔒' }
   ],
   admin: [
-    { to: '/app', label: 'Administración', icon: '⚙️' },
-    { to: '/app/cursos', label: 'Cursos', icon: '📚' },
+    { to: '/app/admin', label: 'Administración', icon: '⚙️' },
+    { to: '/app/admin/users', label: 'Cursos', icon: '📚' },
     { to: '/app/analytics', label: 'Analítica global', icon: '📈' },
     { to: '/app/tutorias', label: 'Tutorías', icon: '🎓' },
     { to: '/app/privacidad', label: 'Ley 1581 / usuarios', icon: '🔒' }

@@ -76,7 +76,7 @@ export default function StudentDashboard() {
       <div className="card card-body">
         <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '500' }}>Accesos Rápidos</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Link to="/app/student/evaluations" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>📝 Evaluaciones pendientes</Link>
+          <Link to="/app/student/evaluaciones" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>📝 Evaluaciones pendientes</Link>
           <Link to="/app/student/collaboration" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>💬 Foros y grupos de estudio</Link>
           <Link to="/app/student/notifications" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>🔔 Centro de notificaciones</Link>
           <Link to="/app/student/tutoring" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>👥 Solicitar tutorías académicas</Link>

@@ -1,10 +1,12 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AppLayout } from './components/layout/AppLayout';
 
 // ─── Páginas públicas ───
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProjectPage from './pages/ProjectPage';
 
 // ─── Páginas estudiante ───
 import StudentDashboard from './pages/student/Dashboard';
@@ -13,7 +15,7 @@ import EvaluationsPage from './pages/student/EvaluationsPage';
 import RecommendationsPage from './pages/student/RecommendationsPage';
 import ProgressPage from './pages/student/ProgressPage';
 import NotificationsPage from './pages/student/NotificationsPage';
-import CollaborationPage from './pages/student/CollaborationPage';
+import StudentCollaborationPage from './pages/student/CollaborationPage';
 import TutoringPage from './pages/student/TutoringPage';
 
 // ─── Páginas profesor ───
@@ -26,7 +28,10 @@ import TeacherAnalyticsPage from './pages/teacher/AnalyticsPage';
 // ─── Páginas admin ───
 import AdminDashboard from './pages/admin/Dashboard';
 import UsersPage from './pages/admin/UsersPage';
-import PrivacyPage from './pages/admin/PrivacyPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+
+// ─── Páginas compartidas ───
+import { CollaborationPage } from './pages/CollaborationPage';
 
 function ProtectedRoute({
   children,
@@ -71,96 +76,42 @@ function RootRedirect() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Públicas */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/" element={<RootRedirect />} />
+      <Route path="/" element={<ProjectPage />} />
 
-      {/* ── ESTUDIANTE ── */}
-      <Route path="/app/student" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <StudentDashboard />
+      <Route path="/app" element={
+        <ProtectedRoute>
+          <AppLayout />
         </ProtectedRoute>
-      } />
-      <Route path="/app/student/courses" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <CoursesPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/student/evaluaciones" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <EvaluationsPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/student/recommendations" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <RecommendationsPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/student/progress" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <ProgressPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/student/notifications" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <NotificationsPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/student/collaboration" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <CollaborationPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/student/tutoring" element={
-        <ProtectedRoute allowedRoles={['student']}>
-          <TutoringPage />
-        </ProtectedRoute>
-      } />
+      }>
+        <Route index element={<RootRedirect />} />
+        <Route path="student" element={<StudentDashboard />} />
+        <Route path="student/courses" element={<CoursesPage />} />
+        <Route path="student/evaluaciones" element={<EvaluationsPage />} />
+        <Route path="student/recommendations" element={<RecommendationsPage />} />
+        <Route path="student/progress" element={<ProgressPage />} />
+        <Route path="student/notifications" element={<NotificationsPage />} />
+        <Route path="student/collaboration" element={<StudentCollaborationPage />} />
+        <Route path="student/tutoring" element={<TutoringPage />} />
 
-      {/* ── PROFESOR ── */}
-      <Route path="/app/teacher" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <TeacherDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/teacher/courses" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <ManageCoursesPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/teacher/create-evaluation" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <CreateEvaluationPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/teacher/grading" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <GradingPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/teacher/analytics" element={
-        <ProtectedRoute allowedRoles={['teacher']}>
-          <TeacherAnalyticsPage />
-        </ProtectedRoute>
-      } />
+        <Route path="teacher" element={<TeacherDashboard />} />
+        <Route path="teacher/courses" element={<ManageCoursesPage />} />
+        <Route path="teacher/create-evaluation" element={<CreateEvaluationPage />} />
+        <Route path="teacher/grading" element={<GradingPage />} />
+        <Route path="teacher/analytics" element={<TeacherAnalyticsPage />} />
 
-      {/* ── ADMIN ── */}
-      <Route path="/app/admin" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <AdminDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/admin/users" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <UsersPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/app/admin/privacy" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <PrivacyPage />
-        </ProtectedRoute>
-      } />
+        <Route path="admin" element={<AdminDashboard />} />
+        <Route path="admin/users" element={<UsersPage />} />
+        <Route path="admin/privacy" element={<PrivacyPage />} />
+
+        <Route path="colaboracion" element={<CollaborationPage />} />
+        <Route path="tutorias" element={<TutoringPage />} />
+        <Route path="analytics" element={<TeacherAnalyticsPage />} />
+        <Route path="privacidad" element={<PrivacyPage />} />
+
+        <Route path="*" element={<Navigate to="/app" replace />} />
+      </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
