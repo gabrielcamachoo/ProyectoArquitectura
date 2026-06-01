@@ -19,7 +19,7 @@ export class NotificationService {
     input: CreateNotificationInput,
     persist: (data: Omit<CreateNotificationInput, 'channels'>) => Promise<unknown>
   ): Promise<{ notification: unknown; deliveries: ChannelDeliveryResult[] }> {
-    const channels = input.channels?.length ? input.channels : ['in_app'];
+    const channels: NotificationChannel[] = input.channels?.length ? input.channels : ['in_app'];
     const notification = await persist({
       userId: input.userId,
       type: input.type,

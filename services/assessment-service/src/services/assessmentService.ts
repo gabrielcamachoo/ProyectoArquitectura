@@ -8,6 +8,12 @@ interface GradingRules {
   passingScore?: number; // % to pass (defaults to eval's passThreshold)
 }
 
+interface GradeAttemptInput {
+  rules?: GradingRules;
+  score?: number;
+  feedback?: string;
+}
+
 /**
  * AssessmentService - Business logic for assessment/grading
  * CRITICAL: gradeAttempt() MUST complete <2s without waiting for RabbitMQ
@@ -208,7 +214,7 @@ export class AssessmentService {
    */
   async gradeAttempt(
     attemptId: string,
-    rules?: GradingRules
+    input?: GradeAttemptInput
   ): Promise<{ attempt: AttemptDTO; grade: GradeDTO; completedAt: number }> {
     const startTime = Date.now();
 
@@ -231,9 +237,15 @@ export class AssessmentService {
       throw new Error('evaluation_not_found');
     }
 
-    // 2. Calculate score synchronously (should be <500ms)
-    const score = this.calculateScore(attempt.answers || {}, evaluation, rules);
-    const passingScore = rules?.passingScore || evaluation.passThreshold;
+    // 2. Calculate score synchronously (should be <500ms) OR accept manual score from teacher
+    const manualScore = input?.score;
+    if (manualScore !== undefined && (manualScore < 0 || manualScore > 100 || Number.isNaN(manualScore))) {
+      throw new Error('score_must_be_0_to_100');
+    }
+
+    const score =
+      manualScore !== undefined ? manualScore : this.calculateScore(attempt.answers || {}, evaluation, input?.rules);
+    const passingScore = input?.rules?.passingScore || evaluation.passThreshold;
     const isPassed = score >= passingScore;
 
     // 3. Create grade record (should be <100ms)
@@ -242,6 +254,7 @@ export class AssessmentService {
       score,
       totalPoints: evaluation.totalPoints,
       rubricScore: score,
+      feedback: input?.feedback,
       gradedBy: undefined // Auto-grading, not by user
     });
 
@@ -377,16 +390,13 @@ export class AssessmentService {
     grade: GradeDTO
   ): Promise<void> {
     await publishEvaluationCompleted({
-      version: 'v1',
-      student_id: attempt.studentId,
-      evaluation_id: attempt.evaluationId,
-      course_id: attempt.courseId ?? evaluation.courseId,
+      event: 'evaluacion.completada.v1',
+      studentId: attempt.studentId,
+      assessmentId: attempt.evaluationId,
+      courseId: attempt.courseId ?? evaluation.courseId,
       score: grade.score,
-      submitted_at: attempt.submittedAt
-        ? attempt.submittedAt instanceof Date
-          ? attempt.submittedAt.toISOString()
-          : String(attempt.submittedAt)
-        : new Date().toISOString()
+      totalPoints: evaluation.totalPoints,
+      passThreshold: evaluation.passThreshold
     });
   }
 }

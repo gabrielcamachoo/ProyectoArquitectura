@@ -26,11 +26,12 @@ export async function startNotificationConsumer(url?: string) {
       const payload = JSON.parse(msg.content.toString()) as {
         user_id?: string;
         userId?: string;
+        studentId?: string;
         type?: string;
         content?: unknown;
       };
       await createNotification({
-        userId: payload.user_id ?? payload.userId ?? 'system',
+        userId: payload.user_id ?? payload.userId ?? payload.studentId ?? 'system',
         type: payload.type ?? msg.fields.routingKey.replace('.v1', ''),
         content: payload.content ?? payload,
         read: false

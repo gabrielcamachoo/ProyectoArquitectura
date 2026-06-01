@@ -75,11 +75,11 @@ export class RecommendationService {
       await this.set(`dashboard:${event.course_id}`, cachePayload, CACHE_TTL_SECONDS);
 
       await publishRecommendationGenerated({
-        version: 'v1',
-        user_id: event.student_id,
-        userId: event.student_id,
-        type: 'recomendacion',
-        content: stored
+        event: 'recomendacion.generada.v1',
+        studentId: stored.studentId,
+        recommendationType: stored.type,
+        courseId: stored.courseId,
+        materials: [stored.resource?.title].filter(Boolean)
       });
 
       this.metrics.processed += 1;

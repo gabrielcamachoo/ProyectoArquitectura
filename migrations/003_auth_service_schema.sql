@@ -39,7 +39,11 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role_id UUID NOT NULL REFERENCES roles(id),
   status VARCHAR(30) NOT NULL DEFAULT 'active',
+  -- Backward-compatible consent flag (legacy)
   consent BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Ley 1581 fields used by auth-service TypeORM entity
+  consent_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+  consent_accepted_at TIMESTAMPTZ,
   created_by UUID,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_by UUID,

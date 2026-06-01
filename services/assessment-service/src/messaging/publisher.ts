@@ -3,12 +3,13 @@ import amqp from 'amqplib';
 const EXCHANGE = 'academic.events';
 
 export interface EvaluationCompletedPayload {
-  version: 'v1';
-  student_id: string;
-  evaluation_id: string;
-  course_id: string;
+  event: 'evaluacion.completada.v1';
+  studentId: string;
+  assessmentId: string;
+  courseId: string;
   score: number;
-  submitted_at: string;
+  totalPoints: number;
+  passThreshold: number;
 }
 
 let channelPromise: Promise<amqp.Channel | null> | null = null;
@@ -39,8 +40,8 @@ export async function publishEvaluationCompleted(payload: EvaluationCompletedPay
       level: 'info',
       category: 'business_log',
       event: 'evaluacion.completada.v1',
-      evaluationId: payload.evaluation_id,
-      studentId: payload.student_id
+      assessmentId: payload.assessmentId,
+      studentId: payload.studentId
     })
   );
 }

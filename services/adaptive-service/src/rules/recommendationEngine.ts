@@ -7,7 +7,8 @@ export interface EvaluationCompletedEvent {
   submitted_at: string;
 }
 
-export type RecommendationType = 'refuerzo' | 'profundización' | 'recurso_complementario';
+// RF-04 contract: score <60 refuerzo, 60-85 suplementario, >85 profundización
+export type RecommendationType = 'refuerzo' | 'suplementario' | 'profundización';
 
 export type MaterialScope = 'current_published_module' | 'next_modules' | 'related_courses';
 
@@ -45,24 +46,24 @@ const RULES: Array<{
     }
   },
   {
-    maxScore: 80,
-    type: 'profundización',
+    maxScore: 86,
+    type: 'suplementario',
     scope: 'next_modules',
-    reasoning: 'Puntaje entre 60% y 80%. Avanza con profundización en los siguientes módulos.',
+    reasoning: 'Puntaje entre 60% y 85%. Se recomiendan materiales suplementarios relacionados al tema.',
     resource: {
-      title: 'Actividades de profundización',
-      action: 'explore_next_modules',
+      title: 'Material suplementario',
+      action: 'review_related_materials',
       priority: 'medium'
     }
   },
   {
     maxScore: 101,
-    type: 'recurso_complementario',
-    scope: 'related_courses',
-    reasoning: 'Excelente desempeño (>80%). Explora recursos complementarios y cursos relacionados.',
+    type: 'profundización',
+    scope: 'next_modules',
+    reasoning: 'Excelente desempeño (>85%). Avanza a contenido más avanzado y siguientes módulos.',
     resource: {
-      title: 'Recursos complementarios',
-      action: 'explore_related_courses',
+      title: 'Contenido de profundización',
+      action: 'explore_next_modules',
       priority: 'low'
     }
   }

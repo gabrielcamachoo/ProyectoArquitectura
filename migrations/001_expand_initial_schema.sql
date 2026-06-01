@@ -119,7 +119,9 @@ CREATE TABLE progress (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE recommendations (
+-- Legacy recommendations table kept for backward-compatibility.
+-- RF-04 uses a different schema created in 009_adaptive_service_schema.sql.
+CREATE TABLE recommendations_legacy (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id UUID NOT NULL REFERENCES users(id),
   course_id UUID NOT NULL REFERENCES courses(id),

@@ -246,10 +246,10 @@ export class AssessmentController {
 
     try {
       const { attemptId } = req.params;
-      const { rules } = req.body || {};
+      const { rules, score, feedback } = req.body || {};
 
       // Synchronous grading - MUST complete <2s
-      const result = await this.service.gradeAttempt(attemptId, rules);
+      const result = await this.service.gradeAttempt(attemptId, { rules, score, feedback });
 
       const elapsedTime = Date.now() - startTime;
 

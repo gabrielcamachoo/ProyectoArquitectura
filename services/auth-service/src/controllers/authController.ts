@@ -6,9 +6,20 @@ export class AuthController {
 
   register = async (req: Request, res: Response) => {
     try {
+      // Accept both the internal contract and the demo script contract
+      // Internal: fullName, institutionalEmail
+      // Demo: name, email, consent_accepted
+      const fullName = req.body.fullName ?? req.body.name;
+      const institutionalEmail = req.body.institutionalEmail ?? req.body.email;
+      const consentAccepted = req.body.consent_accepted ?? req.body.consentAccepted;
+
+      if (consentAccepted === false) {
+        return res.status(400).json({ error: 'consent_required' });
+      }
+
       const result = await this.auth.register({
-        fullName: req.body.fullName,
-        institutionalEmail: req.body.institutionalEmail,
+        fullName,
+        institutionalEmail,
         password: req.body.password,
         role: req.body.role || 'student'
       });
@@ -22,7 +33,7 @@ export class AuthController {
   login = async (req: Request, res: Response) => {
     try {
       const result = await this.auth.login(
-        req.body.institutionalEmail,
+        req.body.institutionalEmail ?? req.body.email,
         req.body.password
       );
       res.status(200).json(result);
