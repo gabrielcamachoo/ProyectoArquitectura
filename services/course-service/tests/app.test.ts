@@ -9,16 +9,16 @@ describe('course-service', () => {
     expect(res.status).toBe(200);
   });
 
-  it('serves first endpoint', async () => {
-    const res = await request(app).get('/courses'.replace(':id','1').replace(':studentId','s').replace(':courseId','c').replace(':moduleId','m').replace(':userId','u'));
+  it('lists courses publicly', async () => {
+    const res = await request(app).get('/courses');
     expect(res.status).toBe(200);
-    expect(res.body.ok).toBe(true);
+    expect(Array.isArray(res.body.courses)).toBe(true);
   });
 
-  it('serves last endpoint', async () => {
-    const url = '/courses/:id/modules/:moduleId/materials'.replace(':id','1').replace(':studentId','s').replace(':courseId','c').replace(':moduleId','m').replace(':userId','u');
-    const req = request(app);
-    const res = await req.post(url);
-    expect([200,201]).toContain(res.status);
+  it('requires auth to create materials', async () => {
+    const res = await request(app)
+      .post('/courses/00000000-0000-4000-8000-000000000001/modules/00000000-0000-4000-8000-000000000002/materials')
+      .send({ title: 'Material test', type: 'pdf', url: 'https://example.com/doc.pdf' });
+    expect(res.status).toBe(401);
   });
 });

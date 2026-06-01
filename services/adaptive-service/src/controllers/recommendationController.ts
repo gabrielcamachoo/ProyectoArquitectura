@@ -6,7 +6,20 @@ export class RecommendationController {
 
   getByStudent = async (req: Request, res: Response) => {
     const data = await this.service.getStudentRecommendations(req.params.studentId);
-    if (!data) return res.status(404).json({ error: 'not_found' });
+    if (this.service.isCircuitOpen()) {
+      return res.status(503).json({
+        items: data,
+        circuitOpen: true,
+        message: 'Motor adaptivo en modo fallback — recomendaciones genéricas'
+      });
+    }
     return res.json(data);
+  };
+
+  getMetrics = (_req: Request, res: Response) => {
+    return res.json({
+      consumer: this.service.getMetrics(),
+      circuitOpen: this.service.isCircuitOpen()
+    });
   };
 }

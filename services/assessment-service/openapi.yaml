@@ -1,25 +1,234 @@
 openapi: 3.0.3
 info:
-  title: assessment-service
+  title: Assessment Service API
   version: 1.0.0
+  description: Evaluations, student attempts, and grading with async RabbitMQ publishing
+servers:
+  - url: http://localhost:3002
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Evaluation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        type:
+          type: string
+          enum: [quiz, exam, assignment]
+        weight:
+          type: number
+          format: float
+        deadline:
+          type: string
+          format: date-time
+
+    Attempt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        evaluationId:
+          type: string
+          format: uuid
+        studentId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, in_progress, submitted, graded, annulled]
+        submittedAt:
+          type: string
+          format: date-time
+        score:
+          type: number
+          format: float
+
 paths:
   /evaluations:
     get:
+      summary: List all evaluations
+      tags: [Evaluations]
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: List of evaluations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Evaluation'
+
+    post:
+      summary: Create evaluation
+      tags: [Evaluations]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+                type:
+                  type: string
+                  enum: [quiz, exam, assignment]
+                weight:
+                  type: number
+                deadline:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Evaluation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '403':
+          description: Forbidden (teacher/admin only)
+
   /evaluations/{id}:
     get:
+      summary: Get evaluation details
+      tags: [Evaluations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Evaluation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '404':
+          description: Evaluation not found
+
   /evaluations/{id}/attempts:
     post:
+      summary: Start new attempt
+      tags: [Attempts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                studentId:
+                  type: string
+                  format: uuid
+                courseId:
+                  type: string
+                  format: uuid
       responses:
-        '201': { description: Created }
+        '201':
+          description: Attempt created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '403':
+          description: Forbidden (student role)
+
   /attempts/{id}/submit:
     put:
+      summary: Submit attempt
+      tags: [Attempts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Attempt submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '409':
+          description: Invalid state
+
   /attempts/{id}/grade:
     put:
+      summary: Grade attempt (publishes async event)
+      tags: [Attempts]
+      description: Returns immediately (<2s), publishes evaluacion.completada.v1 event to RabbitMQ asynchronously
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 100
       responses:
-        '200': { description: OK }
+        '200':
+          description: Attempt graded (event queued)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '403':
+          description: Forbidden (teacher/admin only)
+        '409':
+          description: Invalid state

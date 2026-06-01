@@ -8,9 +8,15 @@
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
     "build": "npm run build --workspaces --if-present",
     "keys:generate": "node scripts/generate-jwt-keys.mjs",
     "kong:build": "node scripts/build-kong-config.mjs",
     "kong:setup": "node scripts/generate-jwt-keys.mjs && node scripts/build-kong-config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
   }
 }

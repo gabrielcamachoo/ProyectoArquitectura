@@ -7,19 +7,78 @@ export interface EvaluationCompletedEvent {
   submitted_at: string;
 }
 
-export type RecommendationType = 'refuerzo' | 'profundizacion' | 'recurso_complementario';
+export type RecommendationType = 'refuerzo' | 'profundización' | 'recurso_complementario';
 
-export interface RecommendationRuleResult {
+export type MaterialScope = 'current_published_module' | 'next_modules' | 'related_courses';
+
+export interface RecommendationOutput {
+  studentId: string;
+  courseId: string;
+  evaluationId: string;
   type: RecommendationType;
-  materialScope: 'current_published_module' | 'next_modules' | 'related_courses';
+  scope: MaterialScope;
+  score: number;
+  reasoning: string;
+  resource: {
+    title: string;
+    action: string;
+    priority: 'high' | 'medium' | 'low';
+  };
 }
 
-export function computeRecommendation(event: EvaluationCompletedEvent): RecommendationRuleResult {
-  if (event.score < 60) {
-    return { type: 'refuerzo', materialScope: 'current_published_module' };
+const RULES: Array<{
+  maxScore: number;
+  type: RecommendationType;
+  scope: MaterialScope;
+  reasoning: string;
+  resource: RecommendationOutput['resource'];
+}> = [
+  {
+    maxScore: 60,
+    type: 'refuerzo',
+    scope: 'current_published_module',
+    reasoning: 'Puntaje por debajo del 60%. Se recomienda repasar el módulo publicado actual.',
+    resource: {
+      title: 'Material de refuerzo',
+      action: 'review_current_module',
+      priority: 'high'
+    }
+  },
+  {
+    maxScore: 80,
+    type: 'profundización',
+    scope: 'next_modules',
+    reasoning: 'Puntaje entre 60% y 80%. Avanza con profundización en los siguientes módulos.',
+    resource: {
+      title: 'Actividades de profundización',
+      action: 'explore_next_modules',
+      priority: 'medium'
+    }
+  },
+  {
+    maxScore: 101,
+    type: 'recurso_complementario',
+    scope: 'related_courses',
+    reasoning: 'Excelente desempeño (>80%). Explora recursos complementarios y cursos relacionados.',
+    resource: {
+      title: 'Recursos complementarios',
+      action: 'explore_related_courses',
+      priority: 'low'
+    }
   }
-  if (event.score < 80) {
-    return { type: 'profundizacion', materialScope: 'next_modules' };
-  }
-  return { type: 'recurso_complementario', materialScope: 'related_courses' };
+];
+
+export function computeRecommendation(event: EvaluationCompletedEvent): RecommendationOutput {
+  const rule = RULES.find((r) => event.score < r.maxScore) ?? RULES[RULES.length - 1];
+
+  return {
+    studentId: event.student_id,
+    courseId: event.course_id,
+    evaluationId: event.evaluation_id,
+    type: rule.type,
+    scope: rule.scope,
+    score: event.score,
+    reasoning: rule.reasoning,
+    resource: rule.resource
+  };
 }

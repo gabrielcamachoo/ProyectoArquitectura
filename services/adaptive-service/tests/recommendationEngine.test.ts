@@ -6,7 +6,7 @@ describe('recommendation rules', () => {
   });
 
   it('returns profundizacion for middle scores', () => {
-    expect(computeRecommendation({ version: 'v1', student_id: 's', evaluation_id: 'e', course_id: 'c', score: 70, submitted_at: new Date().toISOString() }).type).toBe('profundizacion');
+    expect(computeRecommendation({ version: 'v1', student_id: 's', evaluation_id: 'e', course_id: 'c', score: 70, submitted_at: new Date().toISOString() }).type).toBe('profundización');
   });
 
   it('returns recurso_complementario for high scores', () => {

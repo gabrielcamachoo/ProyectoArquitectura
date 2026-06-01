@@ -6,58 +6,119 @@ export class AuthController {
 
   register = async (req: Request, res: Response) => {
     try {
-      const user = await this.auth.register(req.body);
-      res.status(201).json(user);
+      const result = await this.auth.register({
+        fullName: req.body.fullName,
+        institutionalEmail: req.body.institutionalEmail,
+        password: req.body.password,
+        role: req.body.role || 'student'
+      });
+      res.status(201).json(result);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      const message = (error as Error).message;
+      res.status(400).json({ error: message });
     }
   };
 
   login = async (req: Request, res: Response) => {
     try {
-      const result = await this.auth.login(req.body.email, req.body.password);
-      res.json(result);
-    } catch {
+      const result = await this.auth.login(
+        req.body.institutionalEmail,
+        req.body.password
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      const message = (error as Error).message;
+      if (message === 'user_inactive') {
+        return res.status(403).json({ error: 'user_inactive' });
+      }
       res.status(401).json({ error: 'invalid_credentials' });
     }
   };
 
-  listUsers = async (_req: Request, res: Response) => {
-    const items = await this.auth.listUsers();
-    res.json({ items });
-  };
-
   refresh = async (req: Request, res: Response) => {
     try {
-      const data = await this.auth.refresh(req.body.refreshToken);
-      res.json(data);
-    } catch {
+      const result = await this.auth.refresh(req.body.refreshToken);
+      res.status(200).json(result);
+    } catch (error) {
       res.status(401).json({ error: 'invalid_refresh' });
     }
   };
 
   logout = async (req: Request, res: Response) => {
-    const header = req.header('authorization') || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-    await this.auth.logout(token);
-    res.status(204).send();
+    try {
+      const header = req.header('authorization') || '';
+      const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+      await this.auth.logout(token);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: 'logout_failed' });
+    }
+  };
+
+  getCurrentUser = async (req: Request, res: Response) => {
+    try {
+      const context = req as Request & { userId?: string };
+      if (!context.userId) {
+        return res.status(401).json({ error: 'unauthorized' });
+      }
+
+      res.status(200).json({ userId: context.userId });
+    } catch (error) {
+      res.status(500).json({ error: 'error_getting_user' });
+    }
   };
 
   exportData = async (req: Request, res: Response) => {
     try {
-      const user = await this.auth.exportUserData(req.params.id);
-      res.json(user);
-    } catch {
-      res.status(404).json({ error: 'not_found' });
+      const context = req as Request & { userId?: string; role?: string };
+      const userId = req.params.userId;
+
+      if (context.userId !== userId && context.role !== 'admin') {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+
+      const data = await this.auth.exportUserData(userId);
+      res.status(200).json(data);
+    } catch (error) {
+      const message = (error as Error).message;
+      if (message === 'not_found') {
+        return res.status(404).json({ error: 'user_not_found' });
+      }
+      res.status(500).json({ error: 'export_failed' });
     }
   };
 
-  suppress = async (req: Request, res: Response) => {
+  deleteUser = async (req: Request, res: Response) => {
     try {
-      await this.auth.anonymizeUser(req.params.id);
+      const context = req as Request & { userId?: string; role?: string };
+      const userId = req.params.userId;
+
+      if (context.userId !== userId && context.role !== 'admin') {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+
+      await this.auth.deleteUserData(userId);
       res.status(204).send();
-    } catch {
-      res.status(404).json({ error: 'not_found' });
+    } catch (error) {
+      const message = (error as Error).message;
+      if (message === 'not_found') {
+        return res.status(404).json({ error: 'user_not_found' });
+      }
+      res.status(500).json({ error: 'deletion_failed' });
+    }
+  };
+
+  listUsers = async (req: Request, res: Response) => {
+    try {
+      const context = req as Request & { role?: string };
+      if (context.role !== 'admin') {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+
+      const users = await this.auth.listUsers();
+      res.status(200).json({ users });
+    } catch (error) {
+      res.status(500).json({ error: 'list_failed' });
     }
   };
 }

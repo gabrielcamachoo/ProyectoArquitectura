@@ -1,21 +1,276 @@
 openapi: 3.0.3
 info:
-  title: course-service
+  title: Course Service API
   version: 1.0.0
+  description: Course, module, and material management
+servers:
+  - url: http://localhost:3001
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Material:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        type:
+          type: string
+          enum: [video, document, link]
+        url:
+          type: string
+          format: uri
+        visibility:
+          type: string
+          enum: [public, private]
+
+    Module:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        order:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, archived]
+        materials:
+          type: array
+          items:
+            $ref: '#/components/schemas/Material'
+
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        teacherId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [draft, published, archived]
+        publishedAt:
+          type: string
+          format: date-time
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Module'
+
 paths:
   /courses:
     get:
+      summary: List all courses
+      tags: [Courses]
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+
+    post:
+      summary: Create new course
+      tags: [Courses]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+              required: [name]
+      responses:
+        '201':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '403':
+          description: Forbidden (teacher/admin only)
+
   /courses/{id}:
     get:
+      summary: Get course details
+      tags: [Courses]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Course details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Course not found
+
   /courses/{id}/modules:
     get:
+      summary: List course modules
+      tags: [Modules]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
-        '200': { description: OK }
+        '200':
+          description: List of modules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Module'
+
+    post:
+      summary: Create module in course
+      tags: [Modules]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                order:
+                  type: integer
+      responses:
+        '201':
+          description: Module created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '403':
+          description: Forbidden (course owner/admin only)
+
   /courses/{id}/modules/{moduleId}/materials:
     get:
+      summary: List materials in module
+      tags: [Materials]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
-        '200': { description: OK }
+        '200':
+          description: List of materials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Material'
+
+    post:
+      summary: Add material to module
+      tags: [Materials]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                type:
+                  type: string
+                  enum: [video, document, link]
+                url:
+                  type: string
+              required: [title, type, url]
+      responses:
+        '201':
+          description: Material created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+        '403':
+          description: Forbidden (course owner/admin only)

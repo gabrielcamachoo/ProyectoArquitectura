@@ -2,36 +2,278 @@ openapi: 3.0.3
 info:
   title: Auth Service API
   version: 1.0.0
+  description: JWT authentication, RBAC, and Ley 1581 compliance (GDPR-like data protection)
+  contact:
+    name: API Support
+    email: support@puj-as.edu
 servers:
-  - url: / 
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://auth-service.puj-as.edu
+    description: Production server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token with RS256 algorithm. Access token (1h) or refresh token (7d)
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institutionalEmail:
+          type: string
+          format: email
+          description: Encrypted PII field
+        fullName:
+          type: string
+          description: Encrypted PII field
+        role:
+          type: string
+          enum: [student, teacher, admin]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, institutionalEmail, role, createdAt]
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token (1h expiry)
+        refreshToken:
+          type: string
+          description: JWT refresh token (7d expiry)
+        expiresIn:
+          type: integer
+          description: Access token expiry in seconds
+      required: [accessToken, refreshToken, expiresIn]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [invalid_credentials, unauthorized, forbidden, user_exists, not_found, server_error]
+        message:
+          type: string
+      required: [error]
+
+    DataExportResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        courses:
+          type: array
+          items:
+            type: object
+        evaluations:
+          type: array
+          items:
+            type: object
+        exportedAt:
+          type: string
+          format: date-time
+      required: [user, courses, evaluations, exportedAt]
+
 paths:
   /auth/register:
     post:
-      summary: Registro de usuarios
+      summary: Register new user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                institutionalEmail:
+                  type: string
+                  format: email
+                  example: student@javeriana.edu.co
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123!
+                fullName:
+                  type: string
+                  example: Juan Pérez González
+                role:
+                  type: string
+                  enum: [student, teacher]
+                  default: student
+              required: [institutionalEmail, password, fullName]
       responses:
-        '201': { description: Created }
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/login:
     post:
-      summary: Inicio de sesión
+      summary: Authenticate user (login)
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                institutionalEmail:
+                  type: string
+                  format: email
+                  example: student@javeriana.edu.co
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+              required: [institutionalEmail, password]
       responses:
-        '200': { description: OK }
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/refresh:
     post:
-      summary: Renovación de token
+      summary: Refresh access token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required: [refreshToken]
       responses:
-        '200': { description: OK }
+        '200':
+          description: New tokens generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/logout:
     post:
-      summary: Cerrar sesión
+      summary: Logout user (invalidate tokens)
+      tags: [Authentication]
+      security:
+        - BearerAuth: []
       responses:
-        '204': { description: No Content }
+        '204':
+          description: Logout successful
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /users/{id}/data:
     get:
-      summary: Exportar datos personales
+      summary: Export user personal data (Ley 1581 compliance)
+      tags: [Data Protection]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Data exported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataExportResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (admin/self only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /users/{id}:
     delete:
-      summary: Supresión de datos
+      summary: Delete user account (Ley 1581 right to be forgotten)
+      tags: [Data Protection]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '204': { description: No Content }
+        '204':
+          description: User deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (admin/self only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

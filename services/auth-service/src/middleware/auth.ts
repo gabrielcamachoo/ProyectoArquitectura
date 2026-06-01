@@ -26,7 +26,8 @@ export const requireRole = (...roles: string[]) => (req: Request, res: Response,
 
 export const requireSelfOrRole = (...roles: string[]) => (req: Request, res: Response, next: NextFunction) => {
   const context = req as Request & { userId?: string; role?: string };
-  if (context.userId === req.params.id) {
+  const resourceUserId = req.params.userId ?? req.params.id ?? req.params.studentId;
+  if (context.userId === resourceUserId) {
     next();
     return;
   }
