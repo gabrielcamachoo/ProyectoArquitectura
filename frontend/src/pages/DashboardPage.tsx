@@ -26,7 +26,7 @@ export function DashboardPage() {
             api.getNotifications(user.id).catch(() => ({ items: [] }))
           ]);
           setProgress(prog.overallPercentage ?? 0);
-          setNotifCount(notifs.items?.filter((n) => !n.read).length ?? 0);
+          setNotifCount(notifs.items?.filter((n: any) => !n.read).length ?? 0);
         } else {
           const dash = await api.getCourseAnalytics(SEED_COURSE).catch(() => null);
           setAnalytics(dash);

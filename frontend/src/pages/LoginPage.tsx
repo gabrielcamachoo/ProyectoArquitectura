@@ -1,58 +1,73 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card } from '../components/ui/Card';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-export function LoginPage() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const onSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
     try {
       await login(email, password);
-      navigate('/app');
-    } catch {
-      setError('Credenciales inválidas. Verifique su correo institucional y contraseña.');
+      navigate('/');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Credenciales incorrectas');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-hero">
-        <p className="auth-tag">Pontificia Universidad Javeriana</p>
-        <h2>Plataforma de Aprendizaje Adaptativo y Colaborativo</h2>
-        <p>Experiencia unificada para estudiantes, docentes y administradores con motor adaptativo, analítica y colaboración en tiempo real.</p>
-        <ul className="auth-features">
-          <li>Recomendaciones personalizadas según desempeño</li>
-          <li>Seguimiento de progreso y evaluaciones</li>
-          <li>Foros, grupos de estudio y tutorías</li>
-        </ul>
-      </div>
-      <Card title="Iniciar sesión" subtitle="Use su correo institucional">
-        <form className="form-stack" onSubmit={onSubmit}>
-          <Input label="Correo institucional" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-          <Input label="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
-          {error && <p className="form-error">{error}</p>}
-          <Button type="submit" disabled={loading} className="btn-block">
-            {loading ? 'Ingresando...' : 'Ingresar'}
-          </Button>
-        </form>
-        <p className="auth-switch">
-          ¿No tiene cuenta? <Link to="/register">Registrarse</Link>
-        </p>
-      </Card>
+    <div style={{ maxWidth: 420, margin: '80px auto', padding: 32,
+      border: '1px solid #e5e7eb', borderRadius: 12, fontFamily: 'sans-serif' }}>
+      <h1 style={{ textAlign: 'center', color: '#1a56db' }}>🎓 PUJ Aprende</h1>
+      <h2 style={{ textAlign: 'center', marginBottom: 24 }}>Iniciar Sesión</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>
+            Correo institucional
+          </label>
+          <input type="email" value={email}
+            onChange={e => setEmail(e.target.value)} required
+            style={{ width: '100%', padding: '10px 12px',
+              border: '1px solid #d1d5db', borderRadius: 6,
+              fontSize: 15, boxSizing: 'border-box' }} />
+        </div>
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>
+            Contraseña
+          </label>
+          <input type="password" value={password}
+            onChange={e => setPassword(e.target.value)} required
+            style={{ width: '100%', padding: '10px 12px',
+              border: '1px solid #d1d5db', borderRadius: 6,
+              fontSize: 15, boxSizing: 'border-box' }} />
+        </div>
+        {error && (
+          <div style={{ padding: 10, backgroundColor: '#fef2f2',
+            border: '1px solid #fca5a5', borderRadius: 6,
+            color: '#dc2626', marginBottom: 16, fontSize: 14 }}>
+            {error}
+          </div>
+        )}
+        <button type="submit" disabled={loading} style={{
+          width: '100%', padding: 12, backgroundColor: '#1a56db',
+          color: 'white', border: 'none', borderRadius: 6,
+          fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer',
+          opacity: loading ? 0.7 : 1, fontWeight: 'bold' }}>
+          {loading ? 'Iniciando sesión...' : 'Ingresar'}
+        </button>
+      </form>
+      <p style={{ textAlign: 'center', marginTop: 16 }}>
+        ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+      </p>
     </div>
   );
 }
