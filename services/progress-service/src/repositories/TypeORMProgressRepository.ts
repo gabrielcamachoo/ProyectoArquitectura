@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { IsNull } from 'typeorm';
 import { Progress } from '../domain/entities';
 import { AppDataSource } from './dataSource';
 
@@ -28,7 +29,7 @@ export class TypeORMProgressRepository {
       where: {
         studentId: data.studentId,
         courseId: data.courseId,
-        moduleId: data.moduleId || null
+        moduleId: data.moduleId || IsNull() as any
       }
     });
 
@@ -71,7 +72,7 @@ export class TypeORMProgressRepository {
 
   async getCourseProgress(studentId: string, courseId: string): Promise<ProgressRecord> {
     const record = await this.progressRepo.findOne({
-      where: { studentId, courseId, moduleId: null }
+      where: { studentId, courseId, moduleId: IsNull() as any }
     });
 
     if (record) {

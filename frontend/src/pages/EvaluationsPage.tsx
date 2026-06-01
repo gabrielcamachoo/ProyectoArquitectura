@@ -21,7 +21,7 @@ export function EvaluationsPage() {
 
   const load = async () => {
     const res = await api.getEvaluations();
-    setEvaluations(res.items ?? []);
+    setEvaluations(res.evaluations ?? []);
     setLoading(false);
   };
 

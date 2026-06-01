@@ -49,7 +49,7 @@ export function normalizeEvaluationEvent(raw: RawEvaluationEvent): EvaluationCom
     };
   }
 
-  const envelope = raw as { data?: Record<string, unknown> };
+  const envelope = raw as { data?: Record<string, unknown>; timestamp?: string };
   const data = envelope.data ?? {};
   const studentId = String(data.studentId ?? data.student_id ?? '');
   const evaluationId = String(data.evaluationId ?? data.evaluation_id ?? '');

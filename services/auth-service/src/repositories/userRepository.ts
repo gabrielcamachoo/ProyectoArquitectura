@@ -1,30 +1,69 @@
 import { User } from '../domain/types';
 import { TypeORMUserRepository } from './TypeORMUserRepository';
 import { AppDataSource } from './dataSource';
+import { randomUUID } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 export class UserRepository {
   private typeormRepo = new TypeORMUserRepository();
   private inMemory = new Map<string, User>();
-  private usePostgres = false;
+  private usePostgres = AppDataSource.isInitialized;
 
   constructor() {
-    this.initializeDatabase();
+    this.usePostgres = AppDataSource.isInitialized;
+    this.seedIfInMemory();
   }
 
-  private initializeDatabase() {
-    if (!process.env.DATABASE_URL) {
-      console.warn('DATABASE_URL not set, falling back to in-memory storage');
-      return;
-    }
+  private seedIfInMemory() {
+    if (this.usePostgres) return;
+    if (process.env.NODE_ENV === 'production') return;
 
-    AppDataSource.initialize()
-      .then(() => {
-        this.usePostgres = true;
-        console.log('Connected to PostgreSQL');
-      })
-      .catch((error) => {
-        console.warn('PostgreSQL connection failed, falling back to in-memory storage:', error.message);
-      });
+    const now = new Date().toISOString();
+    const passwordHashStudent = bcrypt.hashSync('StudentPass123!', 12);
+    const passwordHashTeacher = bcrypt.hashSync('TeacherPass123!', 12);
+    const passwordHashAdmin = bcrypt.hashSync('AdminPass123!', 12);
+
+    const users: User[] = [
+      {
+        id: randomUUID(),
+        fullName: 'Demo Student',
+        institutionalEmail: 'student_demo@puj.edu.co',
+        passwordHash: passwordHashStudent,
+        role: 'student',
+        status: 'active',
+        consent: true,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: randomUUID(),
+        fullName: 'Demo Teacher',
+        institutionalEmail: 'teacher_demo@puj.edu.co',
+        passwordHash: passwordHashTeacher,
+        role: 'teacher',
+        status: 'active',
+        consent: true,
+        createdAt: now,
+        updatedAt: now
+      },
+      {
+        id: randomUUID(),
+        fullName: 'Demo Admin',
+        institutionalEmail: 'admin_demo@puj.edu.co',
+        passwordHash: passwordHashAdmin,
+        role: 'admin',
+        status: 'active',
+        consent: true,
+        createdAt: now,
+        updatedAt: now
+      }
+    ];
+
+    for (const user of users) {
+      if (![...this.inMemory.values()].some((u) => u.institutionalEmail === user.institutionalEmail)) {
+        this.inMemory.set(user.id, user);
+      }
+    }
   }
 
   async list(): Promise<User[]> {

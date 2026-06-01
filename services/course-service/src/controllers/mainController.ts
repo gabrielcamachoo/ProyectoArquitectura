@@ -6,6 +6,14 @@ import { AppDataSource } from '../repositories/dataSource';
 type CourseStatus = 'draft' | 'published' | 'archived';
 type ModuleStatus = 'draft' | 'published' | 'archived';
 
+interface InMemoryCourse {
+	id: string;
+	name: string;
+	description: string | null;
+	createdBy: string;
+	status: CourseStatus;
+}
+
 interface Module {
 	id: string;
 	courseId: string;
@@ -24,15 +32,14 @@ interface Material {
 }
 
 // In-memory fallback
-const inMemoryCourses = new Map<string, Course>();
+const inMemoryCourses = new Map<string, InMemoryCourse>();
 const inMemoryModules = new Map<string, Module[]>();
 const inMemoryMaterials = new Map<string, Material[]>();
 
 let typeormRepo: TypeORMCourseRepository | null = null;
-let usePostgres = false;
 
 const getRepository = (): TypeORMCourseRepository | null => {
-	if (!usePostgres && AppDataSource.isInitialized) {
+	if (AppDataSource.isInitialized) {
 		if (!typeormRepo) {
 			typeormRepo = new TypeORMCourseRepository();
 		}
@@ -45,13 +52,12 @@ const SEED_COURSE_ID = '00000000-0000-4000-8000-000000000001';
 
 const ensureSeed = () => {
 	if (inMemoryCourses.size > 0) return;
-	const course: Course = {
+	const course: InMemoryCourse = {
 		id: SEED_COURSE_ID,
 		name: 'Arquitectura de Software',
 		description: 'Diseño de sistemas escalables, patrones y microservicios — Pontificia Universidad Javeriana',
-		teacherId: 'teacher-demo',
+		createdBy: 'teacher-demo',
 		status: 'published',
-		publishedAt: new Date().toISOString()
 	};
 	inMemoryCourses.set(course.id, course);
 	const mod1: Module = { id: randomUUID(), courseId: course.id, title: 'Fundamentos y patrones', order: 1, status: 'published' };
@@ -70,7 +76,7 @@ export const listCourses = async (_req: Request, res: Response) => {
 	try {
 		const repo = getRepository();
 		if (repo) {
-			const items = await repo.getCourses();
+			const items = await repo.listCourses();
 			return res.json({ ok: true, items });
 		}
 	} catch (error) {
@@ -83,19 +89,18 @@ export const listCourses = async (_req: Request, res: Response) => {
 };
 
 export const createCourse = async (req: Request, res: Response) => {
-	const course: Course = {
-		id: randomUUID(),
-		name: req.body.name,
-		description: req.body.description,
-		teacherId: req.body.teacherId,
-		status: req.body.status === 'published' ? 'published' : 'draft',
-		publishedAt: req.body.status === 'published' ? new Date().toISOString() : null
-	};
+	const createdBy = req.body.teacherId ?? req.body.createdBy ?? 'unknown';
 
 	try {
 		const repo = getRepository();
 		if (repo) {
-			const created = await repo.createCourse(course);
+			const created = await repo.createCourse({
+				name: req.body.name,
+				description: req.body.description,
+				createdBy,
+				maxStudents: req.body.maxStudents,
+				learningObjectives: req.body.learningObjectives,
+			});
 			return res.status(201).json(created);
 		}
 	} catch (error) {
@@ -103,6 +108,13 @@ export const createCourse = async (req: Request, res: Response) => {
 	}
 
 	// Fallback to in-memory
+	const course: InMemoryCourse = {
+		id: randomUUID(),
+		name: req.body.name,
+		description: req.body.description ?? null,
+		createdBy,
+		status: req.body.status === 'published' ? 'published' : 'draft',
+	};
 	inMemoryCourses.set(course.id, course);
 	res.status(201).json(course);
 };
@@ -145,7 +157,6 @@ export const updateCourse = async (req: Request, res: Response) => {
 		...current,
 		...req.body,
 		status,
-		publishedAt: status === 'published' ? current.publishedAt ?? new Date().toISOString() : current.publishedAt
 	};
 	inMemoryCourses.set(updated.id, updated);
 	return res.json(updated);
@@ -157,7 +168,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
 		if (repo) {
 			const deleted = await repo.deleteCourse(req.params.id);
 			if (!deleted) return res.status(404).json({ error: 'not_found' });
-			return res.json(deleted);
+			return res.json({ ok: true });
 		}
 	} catch (error) {
 		console.error('PostgreSQL error:', error);
@@ -175,7 +186,7 @@ export const listModules = async (req: Request, res: Response) => {
 	try {
 		const repo = getRepository();
 		if (repo) {
-			const items = await repo.getModules(req.params.id);
+			const items = await repo.listModulesByCourse(req.params.id);
 			return res.json({ items });
 		}
 	} catch (error) {
@@ -215,7 +226,7 @@ export const listMaterials = async (req: Request, res: Response) => {
 	try {
 		const repo = getRepository();
 		if (repo) {
-			const items = await repo.getMaterials(req.params.id, req.params.moduleId);
+			const items = await repo.listMaterialsByModule(req.params.moduleId);
 			return res.json({ items });
 		}
 	} catch (error) {
@@ -231,7 +242,7 @@ export const createMaterial = async (req: Request, res: Response) => {
 	try {
 		const repo = getRepository();
 		if (repo) {
-			const material = await repo.createMaterial(req.params.id, req.params.moduleId, req.body);
+			const material = await repo.createMaterial(req.params.moduleId, req.body);
 			return res.status(201).json(material);
 		}
 	} catch (error) {
@@ -253,3 +264,4 @@ export const createMaterial = async (req: Request, res: Response) => {
 	inMemoryMaterials.set(key, current);
 	return res.status(201).json(material);
 };
+

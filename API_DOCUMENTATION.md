@@ -80,14 +80,15 @@ Routes are protected with:
 
 All services support **two storage modes:**
 
-1. **PostgreSQL Mode** (Production)
-   - Enabled when `DATABASE_URL` environment variable is set
-   - Full ACID compliance, transactions, indexes
-   
-2. **In-Memory Fallback** (Development)
-   - Used when `DATABASE_URL` not set or PostgreSQL connection fails
-   - Map-based storage, no persistence across restarts
-   - Logs warnings to console
+1. **PostgreSQL Mode** (Default when available)
+   - Uses PostgreSQL for full persistence (ACID, indexes)
+   - Can be configured via `DATABASE_URL`
+
+2. **In-Memory Mode** (Automatic fallback)
+   - Used when PostgreSQL is not available at runtime
+   - Keeps data for the lifetime of the process (no persistence across restarts)
+
+For local classroom/demo usage, **auth-service** auto-detects PostgreSQL without requiring manual `DATABASE_URL` configuration.
 
 ### Database Schema
 

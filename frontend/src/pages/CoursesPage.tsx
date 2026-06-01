@@ -22,7 +22,7 @@ export function CoursesPage() {
   const load = async () => {
     setLoading(true);
     const res = await api.getCourses();
-    setCourses(res.items ?? []);
+    setCourses(res.courses ?? []);
     setLoading(false);
   };
 
@@ -33,10 +33,10 @@ export function CoursesPage() {
   const selectCourse = async (course: Course) => {
     setSelected(course);
     const mods = await api.getModules(course.id);
-    setModules(mods.items ?? []);
-    if (mods.items?.[0]) {
-      const mats = await api.getMaterials(course.id, mods.items[0].id);
-      setMaterials(mats.items ?? []);
+    setModules(mods.modules ?? []);
+    if (mods.modules?.[0]) {
+      const mats = await api.getMaterials(course.id, mods.modules[0].id);
+      setMaterials(mats.materials ?? []);
     } else {
       setMaterials([]);
     }

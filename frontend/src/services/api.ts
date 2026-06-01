@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
 const apiInstance = axios.create({
   baseURL: API_BASE,
@@ -52,8 +52,8 @@ export const authAPI = {
     role: string; consent_accepted: boolean;
   }) => apiInstance.post('/auth/register', data),
 
-  login: (email: string, password: string) =>
-    apiInstance.post('/auth/login', { email, password }),
+  login: (institutionalEmail: string, password: string) =>
+    apiInstance.post('/auth/login', { institutionalEmail, password }),
 
   refresh: (refreshToken: string) =>
     apiInstance.post('/auth/refresh', { refreshToken }),
@@ -147,7 +147,7 @@ export const api = {
   getModules: (courseId: string) => coursesAPI.getModules(courseId).then(res => ({ modules: res.data.modules })),
   createModule: (courseId: string, data: any) => coursesAPI.createModule(courseId, data).then(res => res.data),
   getMaterials: (courseId: string, moduleId: string) => apiInstance.get(`/courses/${courseId}/modules/${moduleId}/materials`).then(res => ({ materials: res.data.materials })),
-  getEvaluations: () => apiInstance.get('/evaluations').then(res => ({ evaluations: res.data.evaluations })),
+  getEvaluations: () => apiInstance.get('/evaluations').then(res => ({ evaluations: res.data.items || res.data.evaluations })),
   createEvaluation: (data: any) => assessmentsAPI.create(data).then(res => res.data),
   startAttempt: (evaluationId: string, _studentId: string, _courseId?: string) => assessmentsAPI.startAttempt(evaluationId).then(res => res.data),
   submitAttempt: (attemptId: string) => assessmentsAPI.submit(attemptId, []).then(res => res.data),

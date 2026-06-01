@@ -25,6 +25,6 @@ export class Progress {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', name: 'last_updated' })
+  @UpdateDateColumn({ name: 'last_updated' })
   lastUpdated: Date;
 }

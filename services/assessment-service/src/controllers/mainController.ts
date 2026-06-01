@@ -1,9 +1,9 @@
 import { Response } from 'express';
 import { randomUUID } from 'crypto';
 import { publishEvaluationCompleted } from '../messaging/publisher';
-import { TypeORMAssessmentRepository, Evaluation, AttemptDTO } from '../repositories/TypeORMAssessmentRepository';
+import { getAssessmentRepository, AssessmentRepository } from '../repositories/assessmentRepository';
+import { EvaluationDTO, AttemptDTO, EvaluationType } from '../repositories/TypeORMAssessmentRepository';
 import { AuthRequest } from '../middleware/auth';
-import { AppDataSource } from '../repositories/dataSource';
 
 type AttemptStatus = 'created' | 'in_progress' | 'submitted' | 'graded' | 'annulled';
 
@@ -26,21 +26,17 @@ interface Attempt {
   score?: number;
 }
 
-// In-memory storage
+// In-memory storage fallback
 const evaluations = new Map<string, Evaluation>();
 const attempts = new Map<string, Attempt>();
 
-let typeormRepo: TypeORMAssessmentRepository | null = null;
-let usePostgres = false;
+let repository: AssessmentRepository | null = null;
 
-const getRepository = (): TypeORMAssessmentRepository | null => {
-  if (!usePostgres && AppDataSource.isInitialized) {
-    if (!typeormRepo) {
-      typeormRepo = new TypeORMAssessmentRepository();
-    }
-    return typeormRepo;
+const getRepository = (): AssessmentRepository | null => {
+  if (!repository) {
+    repository = getAssessmentRepository();
   }
-  return null;
+  return repository;
 };
 
 const SEED_COURSE = '00000000-0000-4000-8000-000000000001';
@@ -62,7 +58,7 @@ export const listEvaluations = async (_req: AuthRequest, res: Response) => {
   try {
     const repo = getRepository();
     if (repo) {
-      const items = await repo.getEvaluations();
+      const items = await repo.listEvaluationsByCourse(SEED_COURSE);
       return res.json({ items });
     }
   } catch (error) {
@@ -76,11 +72,12 @@ export const listEvaluations = async (_req: AuthRequest, res: Response) => {
 
 export const createEvaluation = async (req: AuthRequest, res: Response) => {
   const data = {
-    courseId: req.body.courseId,
-    title: req.body.title,
-    type: req.body.type,
+    courseId: req.body.courseId ?? SEED_COURSE,
+    title: req.body.title ?? 'Untitled Evaluation',
+    type: (req.body.type ?? 'quiz') as EvaluationType,
     weight: Number(req.body.weight ?? 0),
-    deadline: req.body.deadline
+    deadline: req.body.deadline ? new Date(req.body.deadline) : undefined,
+    createdBy: req.userId ?? 'system'
   };
 
   try {
@@ -94,7 +91,14 @@ export const createEvaluation = async (req: AuthRequest, res: Response) => {
   }
 
   // Fallback to in-memory
-  const evaluation: Evaluation = { id: randomUUID(), ...data };
+  const evaluation: Evaluation = {
+    id: randomUUID(),
+    courseId: data.courseId,
+    title: data.title,
+    type: data.type,
+    weight: data.weight,
+    deadline: data.deadline?.toISOString()
+  };
   evaluations.set(evaluation.id, evaluation);
   return res.status(201).json(evaluation);
 };
@@ -119,26 +123,29 @@ export const getEvaluation = async (req: AuthRequest, res: Response) => {
 
 export const startAttempt = async (req: AuthRequest, res: Response) => {
   const studentId = req.body.studentId ?? req.userId ?? 'student-demo';
+  const courseId = req.body.courseId ?? SEED_COURSE;
+  const evaluationId = req.params.id;
 
   try {
     const repo = getRepository();
     if (repo) {
-      const attempt = await repo.startAttempt({
-        evaluationId: req.params.id,
+      const attempt = await repo.createAttempt({
+        evaluationId,
         studentId,
-        courseId: req.body.courseId ?? SEED_COURSE
+        courseId
       });
-      return res.status(201).json(attempt);
+      const started = await repo.startAttempt(attempt.id);
+      return res.status(201).json(started);
     }
   } catch (error) {
     console.error('PostgreSQL error:', error);
   }
 
   // Fallback to in-memory
-  if (!evaluations.has(req.params.id)) {
-    evaluations.set(req.params.id, {
-      id: req.params.id,
-      courseId: req.body.courseId ?? SEED_COURSE,
+  if (!evaluations.has(evaluationId)) {
+    evaluations.set(evaluationId, {
+      id: evaluationId,
+      courseId,
       title: req.body.title ?? 'evaluation',
       type: req.body.type ?? 'quiz',
       weight: Number(req.body.weight ?? 0),
@@ -147,9 +154,9 @@ export const startAttempt = async (req: AuthRequest, res: Response) => {
   }
   const attempt: Attempt = {
     id: randomUUID(),
-    evaluationId: req.params.id,
+    evaluationId,
     studentId,
-    courseId: req.body.courseId ?? SEED_COURSE,
+    courseId,
     status: 'in_progress'
   };
   attempts.set(attempt.id, attempt);
@@ -160,7 +167,7 @@ export const submitAttempt = async (req: AuthRequest, res: Response) => {
   try {
     const repo = getRepository();
     if (repo) {
-      const attempt = await repo.submitAttempt(req.params.id);
+      const attempt = await repo.submitAttempt(req.params.id, req.body.answers ?? {});
       if (!attempt) return res.status(409).json({ error: 'invalid_state' });
       return res.json(attempt);
     }
@@ -177,15 +184,33 @@ export const submitAttempt = async (req: AuthRequest, res: Response) => {
 };
 
 const emitEvaluationCompleted = async (attempt: Attempt, score: number) => {
-  const evaluation = evaluations.get(attempt.evaluationId);
-  if (!evaluation) return;
+  const repo = getRepository();
+  let totalPoints = 100;
+  let passThreshold = 60;
+  let courseId = attempt.courseId ?? SEED_COURSE;
+
+  if (repo) {
+    const evaluation = await repo.getEvaluation(attempt.evaluationId);
+    if (evaluation) {
+      totalPoints = evaluation.totalPoints;
+      passThreshold = evaluation.passThreshold;
+      courseId = evaluation.courseId;
+    }
+  } else {
+    const evaluation = evaluations.get(attempt.evaluationId);
+    if (evaluation) {
+      courseId = evaluation.courseId;
+    }
+  }
+
   await publishEvaluationCompleted({
-    version: 'v1',
-    student_id: attempt.studentId,
-    evaluation_id: attempt.evaluationId,
-    course_id: attempt.courseId ?? evaluation.courseId,
+    event: 'evaluacion.completada.v1',
+    studentId: attempt.studentId,
+    assessmentId: attempt.evaluationId,
+    courseId,
     score,
-    submitted_at: attempt.submittedAt ?? new Date().toISOString()
+    totalPoints,
+    passThreshold
   });
 };
 
@@ -195,24 +220,26 @@ export const gradeAttempt = async (req: AuthRequest, res: Response) => {
   try {
     const repo = getRepository();
     if (repo) {
-      const attempt = await repo.gradeAttempt(req.params.id, score);
+      const attempt = await repo.updateAttemptScore(req.params.id, score, score >= 60);
       if (!attempt) return res.status(409).json({ error: 'invalid_state' });
-      
+      const marked = await repo.markAttemptAsGraded(req.params.id);
+      if (!marked) return res.status(409).json({ error: 'invalid_state' });
+
       // Emit event asynchronously (don't wait)
       emitEvaluationCompleted(
         {
-          id: attempt.id,
-          evaluationId: attempt.evaluationId,
-          studentId: attempt.studentId,
-          courseId: attempt.courseId,
-          status: attempt.status as AttemptStatus,
-          submittedAt: attempt.submittedAt,
-          score: attempt.score
+          id: marked.id,
+          evaluationId: marked.evaluationId,
+          studentId: marked.studentId,
+          courseId: marked.courseId,
+          status: marked.status as AttemptStatus,
+          submittedAt: marked.submittedAt?.toISOString(),
+          score: marked.score ?? score
         },
         score
       ).catch((err) => console.error('Event publish error:', err));
 
-      return res.json(attempt);
+      return res.json(marked);
     }
   } catch (error) {
     console.error('PostgreSQL error:', error);
@@ -223,26 +250,9 @@ export const gradeAttempt = async (req: AuthRequest, res: Response) => {
   if (!attempt || attempt.status !== 'submitted') return res.status(409).json({ error: 'invalid_state' });
   const updated = { ...attempt, status: 'graded' as const, score };
   attempts.set(updated.id, updated);
-  
+
   // Emit event asynchronously (don't wait)
   emitEvaluationCompleted(updated, score).catch((err) => console.error('Event publish error:', err));
 
-  return res.json(updated);
-};
-    student_id: attempt.studentId,
-    evaluation_id: attempt.evaluationId,
-    course_id: evaluation.courseId,
-    score,
-    submitted_at: attempt.submittedAt ?? new Date().toISOString()
-  });
-};
-
-export const gradeAttempt = async (req: Request, res: Response) => {
-  const attempt = attempts.get(req.params.id);
-  if (!attempt || attempt.status !== 'submitted') return res.status(409).json({ error: 'invalid_state' });
-  const score = Number(req.body.score ?? 0);
-  const updated = { ...attempt, status: 'graded' as const, score };
-  attempts.set(updated.id, updated);
-  await emitEvaluationCompleted(updated, score);
   return res.json(updated);
 };

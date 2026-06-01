@@ -23,7 +23,7 @@ export default function RegisterPage() {
       await authAPI.register(form);
       navigate('/login');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrarse');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Error al registrarse');
     } finally {
       setLoading(false);
     }

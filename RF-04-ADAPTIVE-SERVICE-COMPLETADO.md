@@ -12,7 +12,9 @@
 
 - Escucha `evaluacion.completada.v1` en cola `adaptive-service.evaluacion.completada.v1`
 - Normaliza payloads v1 y legacy envelope via `eventNormalizer.ts`
-- DLQ: `academic.events.dlq` en errores (nack sin requeue)
+- Retries + DLQ observable:
+  - Reintenta hasta 3 veces (header `x-retry-count`) republicando en `academic.events`
+  - Si excede, publica a `academic.events.dlq` con routing key `evaluacion.completada.v1.dlq`
 - Métricas internas: `processed`, `failed`, `lastProcessedAt`
 
 ### 2️⃣ **RecommendationEngine — Reglas pedagógicas**
@@ -40,7 +42,7 @@
 ### 5️⃣ **Publicación downstream**
 
 - Evento `recomendacion.generada.v1` → notification-service
-- Payload incluye `user_id`, `type: recomendacion`, `content` (recomendación almacenada)
+- Payload incluye `studentId`, `courseId`, `recommendationType` y `materials[]`
 
 ### 6️⃣ **Endpoints**
 
@@ -68,6 +70,85 @@ adaptive-service consumer
 
 notification-service consumer
   → createNotification() para el estudiante
+```
+
+---
+
+## 🎬 Demo UC-01 (script 5 min)
+
+### 0) Preparación (30s)
+
+- Tener levantado el stack:
+
+```bash
+docker compose up -d postgres redis rabbitmq auth-service course-service assessment-service adaptive-service notification-service kong
+```
+
+- Base URL del gateway: `http://localhost:8000`
+
+### 1) Crear usuarios y login (1 min)
+
+1. Registrar estudiante y profesor:
+
+```bash
+curl -s -X POST http://localhost:8000/auth/register -H "Content-Type: application/json" -d "{\"fullName\":\"Demo Student\",\"institutionalEmail\":\"student_demo@puj.edu.co\",\"password\":\"StudentPass123!\",\"role\":\"student\"}"
+curl -s -X POST http://localhost:8000/auth/register -H "Content-Type: application/json" -d "{\"fullName\":\"Demo Teacher\",\"institutionalEmail\":\"teacher_demo@puj.edu.co\",\"password\":\"TeacherPass123!\",\"role\":\"teacher\"}"
+```
+
+2. Login y capturar `accessToken` (uno por rol):
+
+```bash
+curl -s -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" -d "{\"institutionalEmail\":\"student_demo@puj.edu.co\",\"password\":\"StudentPass123!\"}"
+curl -s -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" -d "{\"institutionalEmail\":\"teacher_demo@puj.edu.co\",\"password\":\"TeacherPass123!\"}"
+```
+
+### 2) Crear evaluación y attempt (1 min)
+
+3. Crear evaluación (token profesor):
+
+```bash
+curl -s -X POST http://localhost:8000/evaluations -H "Authorization: Bearer <TEACHER_TOKEN>" -H "Content-Type: application/json" -d "{\"courseId\":\"course-demo\",\"title\":\"Demo Evaluation\",\"type\":\"quiz\",\"weight\":0.5,\"totalPoints\":100,\"passThreshold\":60,\"maxAttempts\":1}"
+```
+
+4. Crear attempt (token estudiante) para esa evaluación:
+
+```bash
+curl -s -X POST http://localhost:8000/evaluations/<EVALUATION_ID>/attempts -H "Authorization: Bearer <STUDENT_TOKEN>" -H "Content-Type: application/json" -d "{\"courseId\":\"course-demo\"}"
+```
+
+5. Iniciar y enviar attempt:
+
+```bash
+curl -s -X POST http://localhost:8000/attempts/<ATTEMPT_ID>/start -H "Authorization: Bearer <STUDENT_TOKEN>"
+curl -s -X POST http://localhost:8000/attempts/<ATTEMPT_ID>/submit -H "Authorization: Bearer <STUDENT_TOKEN>" -H "Content-Type: application/json" -d "{\"answers\":{\"q1\":\"A\",\"q2\":\"B\"},\"timeSpentSeconds\":42}"
+```
+
+### 3) Calificar (<2s) y mostrar propagación async (2 min)
+
+6. Calificar attempt (token profesor) y recalcar DR-01: respuesta inmediata (<2s) mientras el evento se procesa async:
+
+```bash
+curl -s -X POST http://localhost:8000/attempts/<ATTEMPT_ID>/grade -H "Authorization: Bearer <TEACHER_TOKEN>" -H "Content-Type: application/json" -d "{\"score\":92}"
+```
+
+7. Esperar 1–2s y consultar recomendaciones (token estudiante):
+
+```bash
+curl -s http://localhost:8000/recommendations/student/<STUDENT_ID> -H "Authorization: Bearer <STUDENT_TOKEN>"
+```
+
+8. Consultar notificaciones creadas por el consumer (token estudiante):
+
+```bash
+curl -s http://localhost:8000/notifications/user/<STUDENT_ID> -H "Authorization: Bearer <STUDENT_TOKEN>"
+```
+
+### 4) (Opcional) Mostrar resiliencia (30s)
+
+- Circuit breaker / métricas (teacher/admin):
+
+```bash
+curl -s http://localhost:8000/recommendations/metrics -H "Authorization: Bearer <TEACHER_TOKEN>"
 ```
 
 ---

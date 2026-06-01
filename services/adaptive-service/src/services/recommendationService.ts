@@ -20,7 +20,7 @@ export interface ConsumerMetrics {
 export class RecommendationService {
   private redis?: Redis;
   private memoryCache = new Map<string, string>();
-  private breaker: CircuitBreaker<[EvaluationCompletedEvent], RecommendationOutput>;
+  private breaker: InstanceType<typeof CircuitBreaker>;
   private metrics: ConsumerMetrics = { processed: 0, failed: 0 };
 
   constructor(redisUrl?: string) {
