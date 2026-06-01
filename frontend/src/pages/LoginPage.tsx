@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
       setError(err.response?.data?.error || err.response?.data?.message || 'Credenciales incorrectas');
     } finally {

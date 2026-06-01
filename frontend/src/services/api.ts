@@ -48,9 +48,15 @@ apiInstance.interceptors.response.use(
 
 export const authAPI = {
   register: (data: {
-    name: string; email: string; password: string;
+    name?: string; email?: string; fullName?: string; institutionalEmail?: string; password: string;
     role: string; consent_accepted: boolean;
-  }) => apiInstance.post('/auth/register', data),
+  }) => apiInstance.post('/auth/register', {
+    fullName: data.name ?? data.fullName,
+    institutionalEmail: data.email ?? data.institutionalEmail,
+    password: data.password,
+    role: data.role,
+    consent_accepted: data.consent_accepted,
+  }),
 
   login: (institutionalEmail: string, password: string) =>
     apiInstance.post('/auth/login', { institutionalEmail, password }),
