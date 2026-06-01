@@ -1,13 +1,112 @@
 openapi: 3.0.3
 info:
-  title: progress-service
+  title: Progress Service API
   version: 1.0.0
+  description: Student progress tracking and aggregation
+servers:
+  - url: http://localhost:3004
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ProgressRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        studentId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        moduleId:
+          type: string
+          format: uuid
+          nullable: true
+        percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        status:
+          type: string
+          enum: [not_started, in_progress, completed]
+        lastUpdated:
+          type: string
+          format: date-time
+
 paths:
   /progress/student/{studentId}/course/{courseId}:
     get:
+      summary: Get student progress in specific course
+      tags: [Progress]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Course progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  item:
+                    $ref: '#/components/schemas/ProgressRecord'
+        '403':
+          description: Forbidden (student sees own, teacher/admin see any)
+
   /progress/student/{studentId}:
     get:
+      summary: Get overall student progress across all courses
+      tags: [Progress]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Overall progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProgressRecord'
+                  overallPercentage:
+                    type: number
+                    format: float
+        '403':
+          description: Forbidden (student sees own, teacher/admin see any)

@@ -1,13 +1,90 @@
 openapi: 3.0.3
 info:
-  title: notification-service
+  title: Notification Service API
   version: 1.0.0
+  description: Multi-channel notifications with RabbitMQ consumer
+servers:
+  - url: http://localhost:3007
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [evaluation_graded, course_announcement, study_group_invitation, tutoring_reminder]
+        content:
+          type: object
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
 paths:
   /notifications/user/{userId}:
     get:
+      summary: List user notifications
+      tags: [Notifications]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '403':
+          description: Forbidden (user sees own, admin sees any)
+
   /notifications/{id}/read:
-    get:
+    put:
+      summary: Mark notification as read
+      tags: [Notifications]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
       responses:
-        '200': { description: OK }
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Notification not found
