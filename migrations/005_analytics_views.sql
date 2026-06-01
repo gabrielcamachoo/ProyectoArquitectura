@@ -7,7 +7,7 @@ SELECT
   c.id as course_id,
   c.name as course_name,
   COUNT(DISTINCT a.id) as total_attempts,
-  COUNT(DISTINCT a.user_id) as active_students,
+  COUNT(DISTINCT a.student_id) as active_students,
   AVG(a.score) as average_score,
   ROUND(
     COUNT(CASE WHEN a.score >= 60 THEN 1 END) * 100.0 / 
@@ -16,7 +16,7 @@ SELECT
   COUNT(DISTINCT CASE WHEN a.status = 'graded' THEN a.id END) as evaluations_submitted,
   MAX(a.created_at) as last_activity
 FROM courses c
-LEFT JOIN assessments e ON c.id = e.course_id
+LEFT JOIN evaluations e ON c.id = e.course_id
 LEFT JOIN attempts a ON e.id = a.evaluation_id
 GROUP BY c.id, c.name;
 
@@ -36,7 +36,7 @@ SELECT
   MAX(a.created_at) as last_activity
 FROM users u
 CROSS JOIN courses c
-LEFT JOIN attempts a ON u.id = a.user_id AND a.course_id = c.id
+LEFT JOIN attempts a ON u.id = a.student_id AND a.evaluation_id IN (SELECT id FROM evaluations WHERE course_id = c.id)
 GROUP BY u.id, u.full_name, c.id, c.name;
 
 -- View: At-risk students (completion < 40% or no recent activity)

@@ -137,17 +137,17 @@ export const collaborationAPI = {
 
 // ─── LEGACY NAMED API BRIDGE ───
 export const api = {
-  register: (data: any) => authAPI.register({ name: data.fullName, email: data.email, password: data.password, role: data.role, consent_accepted: true }).then(res => res.data),
-  login: (email: string, password: string) => authAPI.login(email, password).then(res => ({ token: res.data.accessToken, refreshToken: res.data.refreshToken, user: res.data.user })),
+  register: (data: any) => authAPI.register({ name: data.fullName, email: data.institutionalEmail, password: data.password, role: data.role, consent_accepted: true }).then(res => res.data),
+  login: (email: string, password: string) => authAPI.login(email, password).then(res => ({ accessToken: res.data.accessToken, refreshToken: res.data.refreshToken, user: res.data.user })),
   logout: () => authAPI.logout().then(res => res.data),
-  getCourses: () => coursesAPI.list().then(res => ({ items: res.data.courses })),
+  getCourses: () => coursesAPI.list().then(res => ({ courses: res.data.courses })),
   getCourse: (id: string) => coursesAPI.get(id).then(res => res.data),
   createCourse: (data: any) => coursesAPI.create(data).then(res => res.data),
   updateCourse: (id: string, data: any) => coursesAPI.update(id, data).then(res => res.data),
-  getModules: (courseId: string) => coursesAPI.getModules(courseId).then(res => ({ items: res.data.modules })),
+  getModules: (courseId: string) => coursesAPI.getModules(courseId).then(res => ({ modules: res.data.modules })),
   createModule: (courseId: string, data: any) => coursesAPI.createModule(courseId, data).then(res => res.data),
-  getMaterials: (courseId: string, moduleId: string) => apiInstance.get(`/courses/${courseId}/modules/${moduleId}/materials`).then(res => ({ items: res.data.materials })),
-  getEvaluations: () => apiInstance.get('/evaluations').then(res => ({ items: res.data.evaluations })),
+  getMaterials: (courseId: string, moduleId: string) => apiInstance.get(`/courses/${courseId}/modules/${moduleId}/materials`).then(res => ({ materials: res.data.materials })),
+  getEvaluations: () => apiInstance.get('/evaluations').then(res => ({ evaluations: res.data.evaluations })),
   createEvaluation: (data: any) => assessmentsAPI.create(data).then(res => res.data),
   startAttempt: (evaluationId: string, _studentId: string, _courseId?: string) => assessmentsAPI.startAttempt(evaluationId).then(res => res.data),
   submitAttempt: (attemptId: string) => assessmentsAPI.submit(attemptId, []).then(res => res.data),

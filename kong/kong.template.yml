@@ -23,7 +23,7 @@ services:
       - name: auth-protected
         paths:
           - /auth/logout
-          - /users
+          - /auth/users
         strip_path: false
         plugins:
 __JWT_PLUGIN__

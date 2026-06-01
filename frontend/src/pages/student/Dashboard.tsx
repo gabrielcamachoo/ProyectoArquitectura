@@ -29,49 +29,57 @@ export default function StudentDashboard() {
   }, [user]);
 
   if (loading) {
-    return <div style={{ padding: 40, fontFamily: 'sans-serif' }}>Cargando panel...</div>;
+    return <div className="page-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Cargando panel...</div>;
   }
 
   return (
-    <div style={{ padding: 40, maxWidth: 900, fontFamily: 'sans-serif' }}>
-      <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: 24, marginBottom: 24 }}>
-        <span style={{ backgroundColor: '#1d4ed8', color: 'white', padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 'bold' }}>ESTUDIANTE</span>
-        <h2 style={{ color: '#1e3a8a', margin: '12px 0 8px 0' }}>¡Hola, {user?.name}!</h2>
-        <p style={{ color: '#1e40af', margin: 0 }}>Explora cursos, completa evaluaciones y recibe recomendaciones adaptadas a tu desempeño.</p>
-        <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
-          <Link to="/app/student/courses" style={{ textDecoration: 'none', backgroundColor: '#1a56db', color: 'white', padding: '10px 16px', borderRadius: 6, fontWeight: 'bold' }}>Ver Cursos</Link>
-          <Link to="/app/student/recommendations" style={{ textDecoration: 'none', backgroundColor: 'white', color: '#1a56db', border: '1px solid #1a56db', padding: '10px 16px', borderRadius: 6, fontWeight: 'bold' }}>Mis Recomendaciones</Link>
+    <div className="page-content" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      <div className="hero-banner" style={{ background: 'linear-gradient(135deg, var(--info) 0%, var(--ja-blue-light) 100%)', marginBottom: '24px' }}>
+        <div>
+          <span style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', letterSpacing: '0.5px' }}>ESTUDIANTE</span>
+          <h2 style={{ margin: '12px 0 8px 0', fontSize: '28px', fontWeight: '500' }}>¡Hola, {user?.name}!</h2>
+          <p style={{ margin: 0, fontSize: '16px' }}>Explora cursos, completa evaluaciones y recibe recomendaciones adaptadas a tu desempeño.</p>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <Link to="/app/student/courses" className="btn" style={{ textDecoration: 'none', backgroundColor: 'var(--surface)', color: 'var(--info)', padding: '10px 16px', borderRadius: '4px', fontWeight: '500' }}>Ver Cursos</Link>
+          <Link to="/app/student/recommendations" className="btn" style={{ textDecoration: 'none', backgroundColor: 'transparent', border: '1px solid white', color: 'white', padding: '10px 16px', borderRadius: '4px', fontWeight: '500' }}>Mis Recomendaciones</Link>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <div style={{ padding: 20, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <span style={{ fontSize: 24 }}>📈</span>
-          <h3 style={{ margin: '8px 0 4px 0', fontSize: 18 }}>Progreso General</h3>
-          <p style={{ fontSize: 24, fontWeight: 'bold', margin: '4px 0' }}>{progress}%</p>
-          <span style={{ color: '#6b7280', fontSize: 12 }}>Promedio en tus cursos</span>
+      <div className="cards-grid" style={{ marginBottom: '24px' }}>
+        <div className="card card-body" style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <div style={{ fontSize: '32px', background: 'var(--bg)', padding: '12px', borderRadius: '50%' }}>📈</div>
+          <div>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--text-muted)' }}>Progreso General</h3>
+            <p style={{ fontSize: '28px', fontWeight: '500', margin: '0 0 4px 0', color: 'var(--text)' }}>{progress}%</p>
+            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Promedio en tus cursos</span>
+          </div>
         </div>
-        <div style={{ padding: 20, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <span style={{ fontSize: 24 }}>🔔</span>
-          <h3 style={{ margin: '8px 0 4px 0', fontSize: 18 }}>Notificaciones</h3>
-          <p style={{ fontSize: 24, fontWeight: 'bold', margin: '4px 0' }}>{notifCount}</p>
-          <span style={{ color: '#6b7280', fontSize: 12 }}>Sin leer actualmente</span>
+        <div className="card card-body" style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <div style={{ fontSize: '32px', background: 'var(--bg)', padding: '12px', borderRadius: '50%' }}>🔔</div>
+          <div>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--text-muted)' }}>Notificaciones</h3>
+            <p style={{ fontSize: '28px', fontWeight: '500', margin: '0 0 4px 0', color: 'var(--text)' }}>{notifCount}</p>
+            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Sin leer actualmente</span>
+          </div>
         </div>
-        <div style={{ padding: 20, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <span style={{ fontSize: 24 }}>✨</span>
-          <h3 style={{ margin: '8px 0 4px 0', fontSize: 18 }}>Motor Adaptativo</h3>
-          <p style={{ fontSize: 24, fontWeight: 'bold', margin: '4px 0', color: '#16a34a' }}>Activo</p>
-          <span style={{ color: '#6b7280', fontSize: 12 }}>Personalización activa</span>
+        <div className="card card-body" style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+          <div style={{ fontSize: '32px', background: 'var(--bg)', padding: '12px', borderRadius: '50%' }}>✨</div>
+          <div>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--text-muted)' }}>Motor Adaptativo</h3>
+            <p style={{ fontSize: '28px', fontWeight: '500', margin: '0 0 4px 0', color: 'var(--success)' }}>Activo</p>
+            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Personalización activa</span>
+          </div>
         </div>
       </div>
 
-      <div style={{ padding: 20, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-        <h3 style={{ margin: '0 0 16px 0' }}>Accesos Rápidos</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Link to="/app/student/evaluations" style={{ color: '#1a56db', textDecoration: 'none', fontWeight: 500 }}>📝 Evaluaciones pendientes</Link>
-          <Link to="/app/student/collaboration" style={{ color: '#1a56db', textDecoration: 'none', fontWeight: 500 }}>💬 Foros y grupos de estudio</Link>
-          <Link to="/app/student/notifications" style={{ color: '#1a56db', textDecoration: 'none', fontWeight: 500 }}>🔔 Centro de notificaciones</Link>
-          <Link to="/app/student/tutoring" style={{ color: '#1a56db', textDecoration: 'none', fontWeight: 500 }}>👥 Solicitar tutorías académicas</Link>
+      <div className="card card-body">
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '500' }}>Accesos Rápidos</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Link to="/app/student/evaluations" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>📝 Evaluaciones pendientes</Link>
+          <Link to="/app/student/collaboration" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>💬 Foros y grupos de estudio</Link>
+          <Link to="/app/student/notifications" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>🔔 Centro de notificaciones</Link>
+          <Link to="/app/student/tutoring" style={{ color: 'var(--info)', textDecoration: 'none', fontWeight: 500, padding: '8px 12px', borderRadius: '4px', background: 'var(--bg)' }}>👥 Solicitar tutorías académicas</Link>
         </div>
       </div>
     </div>

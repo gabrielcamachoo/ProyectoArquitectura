@@ -25,49 +25,46 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: '80px auto', padding: 32,
-      border: '1px solid #e5e7eb', borderRadius: 12, fontFamily: 'sans-serif' }}>
-      <h1 style={{ textAlign: 'center', color: '#1a56db' }}>🎓 PUJ Aprende</h1>
-      <h2 style={{ textAlign: 'center', marginBottom: 24 }}>Iniciar Sesión</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>
-            Correo institucional
-          </label>
-          <input type="email" value={email}
-            onChange={e => setEmail(e.target.value)} required
-            style={{ width: '100%', padding: '10px 12px',
-              border: '1px solid #d1d5db', borderRadius: 6,
-              fontSize: 15, boxSizing: 'border-box' }} />
+    <div className="auth-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div className="card" style={{ maxWidth: 450, width: '100%', padding: '40px 32px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', background: 'var(--surface)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{ color: 'var(--info)', fontSize: '24px', fontWeight: '500', marginBottom: '8px' }}>Google-like Platform</h1>
+          <h2 style={{ fontSize: '28px', fontWeight: '400', color: 'var(--text)' }}>Iniciar sesión</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginTop: '8px' }}>Ingresa con tu cuenta institucional</p>
         </div>
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', marginBottom: 4, fontWeight: 500 }}>
-            Contraseña
-          </label>
-          <input type="password" value={password}
-            onChange={e => setPassword(e.target.value)} required
-            style={{ width: '100%', padding: '10px 12px',
-              border: '1px solid #d1d5db', borderRadius: 6,
-              fontSize: 15, boxSizing: 'border-box' }} />
-        </div>
-        {error && (
-          <div style={{ padding: 10, backgroundColor: '#fef2f2',
-            border: '1px solid #fca5a5', borderRadius: 6,
-            color: '#dc2626', marginBottom: 16, fontSize: 14 }}>
-            {error}
+        
+        <form onSubmit={handleSubmit} className="form-stack">
+          <div className="field">
+            <label className="field-label">Correo institucional</label>
+            <input type="email" value={email}
+              onChange={e => setEmail(e.target.value)} required
+              className="field-input" placeholder="tu.correo@institucion.edu" />
           </div>
-        )}
-        <button type="submit" disabled={loading} style={{
-          width: '100%', padding: 12, backgroundColor: '#1a56db',
-          color: 'white', border: 'none', borderRadius: 6,
-          fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading ? 0.7 : 1, fontWeight: 'bold' }}>
-          {loading ? 'Iniciando sesión...' : 'Ingresar'}
-        </button>
-      </form>
-      <p style={{ textAlign: 'center', marginTop: 16 }}>
-        ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
-      </p>
+          
+          <div className="field">
+            <label className="field-label">Contraseña</label>
+            <input type="password" value={password}
+              onChange={e => setPassword(e.target.value)} required
+              className="field-input" placeholder="••••••••" />
+          </div>
+          
+          {error && (
+            <div className="form-error" style={{ padding: '10px 12px', background: '#fce8e6', color: 'var(--danger)', borderRadius: '4px' }}>
+              {error}
+            </div>
+          )}
+          
+          <div style={{ marginTop: '16px' }}>
+            <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg" style={{ background: 'var(--info)', color: 'white', borderRadius: '4px', fontWeight: '500' }}>
+              {loading ? 'Iniciando sesión...' : 'Siguiente'}
+            </button>
+          </div>
+        </form>
+        
+        <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--text-muted)' }}>
+          ¿No tienes cuenta? <Link to="/register" style={{ color: 'var(--info)', fontWeight: '500' }}>Crear cuenta</Link>
+        </p>
+      </div>
     </div>
   );
 }

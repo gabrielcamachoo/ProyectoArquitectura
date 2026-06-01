@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const PROGRESS_API = 'http://localhost:3004';
+const PROGRESS_API = 'http://localhost:3003';
 const AUTH_API = 'http://localhost:3000';
 
 let studentToken: string;

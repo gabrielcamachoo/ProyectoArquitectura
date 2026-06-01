@@ -1,21 +1,21 @@
 :root {
-  --ja-blue: #003366;
-  --ja-blue-light: #004d99;
-  --ja-gold: #c9a227;
-  --ja-gold-soft: #f5ecd4;
-  --bg: #f4f6f9;
+  --ja-blue: #1a73e8;       /* Blue - Google Primary */
+  --ja-blue-light: #4285f4; /* Lighter Google Blue */
+  --ja-gold: #fbbc04;       /* Google Gold/Yellow */
+  --ja-gold-soft: #fef7e0;  /* Google Soft Yellow */
+  --bg: #f8f9fa;            /* Google Light Gray Background */
   --surface: #ffffff;
-  --text: #1a2332;
-  --text-muted: #5c6b7a;
-  --border: #e2e8f0;
-  --success: #0d7a4e;
-  --warning: #b45309;
-  --danger: #b91c1c;
-  --info: #0369a1;
-  --radius: 12px;
-  --shadow: 0 4px 24px rgba(0, 51, 102, 0.08);
-  --font: 'DM Sans', system-ui, sans-serif;
-  --font-display: 'Source Serif 4', Georgia, serif;
+  --text: #202124;          /* Google Dark Gray */
+  --text-muted: #5f6368;    /* Google Muted Gray */
+  --border: #dadce0;        /* Google Border Color */
+  --success: #1e8e3e;       /* Google Green */
+  --warning: #f29900;       /* Google Orange */
+  --danger: #d93025;        /* Google Red */
+  --info: #1a73e8;
+  --radius: 8px;            /* Google standard corner radius */
+  --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google Card Shadow */
+  --font: 'Google Sans', 'Roboto', 'Inter', system-ui, sans-serif;
+  --font-display: 'Google Sans Display', 'Roboto', system-ui, sans-serif;
 }
 
 *,
