@@ -1,0 +1,44 @@
+FROM node:20-alpine AS deps
+
+RUN apk add --no-cache libc6-compat python3 make g++
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm ci
+
+FROM deps AS build
+
+ARG SERVICE_WORKSPACE
+RUN npm run build --workspace=@proyecto/shared-core && npm run build --workspace=${SERVICE_WORKSPACE}
+
+FROM node:20-alpine AS production
+
+ARG SERVICE_WORKSPACE
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/packages/shared-core ./packages/shared-core
+COPY --from=build /app/services/${SERVICE_WORKSPACE}/dist ./services/${SERVICE_WORKSPACE}/dist
+COPY --from=build /app/services/${SERVICE_WORKSPACE}/package.json ./services/${SERVICE_WORKSPACE}/package.json
+
+WORKDIR /app/services/${SERVICE_WORKSPACE}
+
+RUN chown -R nodejs:nodejs /app
+
+USER nodejs
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+CMD ["node", "dist/index.js"]

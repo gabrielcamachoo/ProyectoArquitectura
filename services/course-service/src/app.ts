@@ -1,14 +1,25 @@
-import express from 'express';
+import { createBaseApp } from '@proyecto/shared-core/http';
+import { createLoggingMiddleware } from '@proyecto/shared-core/logging';
+import { setupSwaggerUI } from '@proyecto/shared-core/swagger';
 import routes from './routes';
-import { loggingMiddleware } from './middleware/logging';
-import { setupSwaggerUI } from './utils/swagger';
 
 export function createApp() {
-  const app = express();
-  app.use(express.json());
-  app.use(loggingMiddleware('course-service'));
-  app.get('/health', (_req, res) => res.json({ service: 'course-service', status: 'ok' }));
-  setupSwaggerUI(app, 'course-service');
+  const app = createBaseApp({
+    serviceName: 'course-service',
+    enableCors: true,
+    bodyLimit: '10mb'
+  });
+
+  // Logging middleware
+  app.use(createLoggingMiddleware('course-service'));
+
+  // Swagger documentation
+  setupSwaggerUI(app, {
+    serviceName: 'course-service'
+  });
+
+  // Application routes
   app.use(routes);
+
   return app;
 }

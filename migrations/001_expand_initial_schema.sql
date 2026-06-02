@@ -212,6 +212,7 @@ CREATE INDEX idx_users_role ON users(role_id);
 CREATE INDEX idx_courses_teacher ON courses(teacher_id);
 CREATE INDEX idx_attempts_evaluation_student ON attempts(evaluation_id, student_id);
 CREATE INDEX idx_progress_student_course ON progress(student_id, course_id);
-CREATE INDEX idx_recommendations_student ON recommendations(student_id);
+-- recommendations table is legacy-named in this migration
+CREATE INDEX idx_recommendations_student ON recommendations_legacy(student_id);
 CREATE INDEX idx_notifications_user ON notifications(user_id);
 CREATE INDEX idx_audit_logs_user_created ON audit_logs(user_id, created_at);

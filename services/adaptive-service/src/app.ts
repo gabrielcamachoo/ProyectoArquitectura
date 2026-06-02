@@ -1,21 +1,25 @@
-import express from 'express';
+import { createBaseApp } from '@proyecto/shared-core/http';
+import { createLoggingMiddleware } from '@proyecto/shared-core/logging';
+import { setupSwaggerUI } from '@proyecto/shared-core/swagger';
 import routes from './routes';
-import { loggingMiddleware } from './middleware/logging';
-import { setupSwaggerUI } from './utils/swagger';
 
 export function createApp() {
-  const app = express();
-  app.use(express.json());
-  app.use(loggingMiddleware);
-  app.get('/health', (_req, res) =>
-    res.json({
-      service: 'adaptive-service',
-      status: 'ok',
-      rabbitmq: Boolean(process.env.RABBITMQ_URL),
-      redis: Boolean(process.env.REDIS_URL)
-    })
-  );
-  setupSwaggerUI(app, 'adaptive-service');
+  const app = createBaseApp({
+    serviceName: 'adaptive-service',
+    enableCors: true,
+    bodyLimit: '10mb'
+  });
+
+  // Logging middleware
+  app.use(createLoggingMiddleware('adaptive-service'));
+
+  // Swagger documentation
+  setupSwaggerUI(app, {
+    serviceName: 'adaptive-service'
+  });
+
+  // Application routes
   app.use(routes);
+
   return app;
 }

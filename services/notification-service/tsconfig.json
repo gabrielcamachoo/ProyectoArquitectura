@@ -1,19 +1,25 @@
 {
+  "extends": "../../tsconfig.services.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "esModuleInterop": true,
-    "strict": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@proyecto/shared-core": [
+        "../../packages/shared-core/dist"
+      ],
+      "@proyecto/shared-core/*": [
+        "../../packages/shared-core/dist/*"
+      ]
+    }
   },
   "include": [
-    "src"
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }

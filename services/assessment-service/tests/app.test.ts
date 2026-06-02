@@ -19,10 +19,10 @@ describe('assessment-service', () => {
     expect(res.status).toBe(401);
   });
 
-  it('requires auth to grade attempts', async () => {
+  it('requires auth to start attempts', async () => {
     const res = await request(app)
-      .post('/attempts/00000000-0000-4000-8000-000000000003/grade')
-      .send({ score: 88 });
+      .post('/attempts/00000000-0000-4000-8000-000000000003/start')
+      .send();
     expect(res.status).toBe(401);
   });
 });

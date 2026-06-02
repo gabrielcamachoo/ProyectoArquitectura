@@ -17,7 +17,8 @@ export class TokenStore {
       return;
     }
     this.local.set(key, value);
-    setTimeout(() => this.local.delete(key), ttlSeconds * 1000);
+    const timeout = setTimeout(() => this.local.delete(key), ttlSeconds * 1000);
+    timeout.unref?.();
   }
 
   async get(key: string): Promise<string | null> {

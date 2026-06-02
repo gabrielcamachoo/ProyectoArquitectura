@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { CourseController } from '../controllers/courseController';
-import { authGuard, requireRole } from '../middleware/auth';
+import { authGuard, requireRole } from '@proyecto/shared-core/auth';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();

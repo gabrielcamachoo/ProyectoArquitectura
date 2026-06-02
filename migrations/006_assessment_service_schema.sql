@@ -56,6 +56,16 @@ CREATE TABLE IF NOT EXISTS grades (
 
 CREATE INDEX IF NOT EXISTS idx_grades_attempt_created ON grades(attempt_id, created_at);
 
+-- Backward-compatible patch for base schema from 001 where attempts has no course_id.
+ALTER TABLE attempts
+  ADD COLUMN IF NOT EXISTS course_id UUID;
+
+UPDATE attempts a
+SET course_id = e.course_id
+FROM evaluations e
+WHERE a.evaluation_id = e.id
+  AND a.course_id IS NULL;
+
 -- Indexes for performance
 CREATE INDEX idx_evaluations_course_id ON evaluations(course_id);
 CREATE INDEX idx_attempts_evaluation_id ON attempts(evaluation_id);
@@ -64,7 +74,4 @@ CREATE INDEX idx_attempts_course_id ON attempts(course_id);
 CREATE INDEX idx_attempts_status ON attempts(status);
 CREATE INDEX idx_attempts_student_course ON attempts(student_id, course_id);
 
--- Seed data
-INSERT INTO evaluations (id, course_id, title, type, weight, deadline) VALUES
-  ('00000000-0000-4000-8000-000000000010', '00000000-0000-4000-8000-000000000001', 'Parcial 1 — Arquitectura de microservicios', 'quiz', 30.00, NOW() + INTERVAL '7 days')
-  ON CONFLICT (id) DO NOTHING;
+-- Seed removed: requires a pre-seeded course that is not guaranteed during bootstrap.

@@ -1,14 +1,36 @@
 import axios from 'axios';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const USE_DIRECT_PORTS =
+  (import.meta as any).env?.VITE_USE_DIRECT_PORTS === 'true' ||
+  (!(import.meta as any).env?.VITE_USE_DIRECT_PORTS && window.location.hostname === 'localhost');
+
+function getServiceBaseByPath(path: string): string {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+
+  if (normalized.startsWith('/auth') || normalized.startsWith('/users')) return 'http://localhost:3000';
+  if (normalized.startsWith('/courses')) return 'http://localhost:3001';
+  if (normalized.startsWith('/evaluations') || normalized.startsWith('/attempts')) return 'http://localhost:3002';
+  if (normalized.startsWith('/progress')) return 'http://localhost:3003';
+  if (normalized.startsWith('/recommendations')) return 'http://localhost:3004';
+  if (normalized.startsWith('/forums') || normalized.startsWith('/study-groups') || normalized.startsWith('/tutoring')) return 'http://localhost:3005';
+  if (normalized.startsWith('/analytics')) return 'http://localhost:3006';
+  if (normalized.startsWith('/notifications')) return 'http://localhost:3007';
+
+  return API_BASE;
+}
 
 const apiInstance = axios.create({
-  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
 });
 
 // ─── INTERCEPTOR REQUEST: JWT en cada petición ───
 apiInstance.interceptors.request.use((config) => {
+  const requestPath = config.url || '';
+  if (!/^https?:\/\//i.test(requestPath)) {
+    config.baseURL = USE_DIRECT_PORTS ? getServiceBaseByPath(requestPath) : API_BASE;
+  }
+
   const token = localStorage.getItem('accessToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
@@ -25,7 +47,8 @@ apiInstance.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) throw new Error('no refresh');
-        const res = await axios.post(`${API_BASE}/auth/refresh`,
+        const refreshBase = USE_DIRECT_PORTS ? getServiceBaseByPath('/auth/refresh') : API_BASE;
+        const res = await axios.post(`${refreshBase}/auth/refresh`,
           { refreshToken });
         const { accessToken, refreshToken: newRefresh } = res.data;
         localStorage.setItem('accessToken', accessToken);
@@ -83,16 +106,18 @@ export const coursesAPI = {
 };
 
 export const assessmentsAPI = {
-  create: (data: object) => apiInstance.post('/assessments', data),
-  get: (id: string) => apiInstance.get(`/assessments/${id}`),
-  startAttempt: (assessmentId: string) =>
-    apiInstance.post(`/assessments/${assessmentId}/attempts`),
+  // Service uses "evaluations" and dedicated attempt endpoints
+  create: (data: object) => apiInstance.post('/evaluations', data),
+  get: (id: string) => apiInstance.get(`/evaluations/${id}`),
+  createAttempt: (evaluationId: string) => apiInstance.post(`/evaluations/${evaluationId}/attempts`),
+  startAttempt: (attemptId: string) => apiInstance.post(`/attempts/${attemptId}/start`),
   submit: (attemptId: string, answers: object[]) =>
     apiInstance.post(`/attempts/${attemptId}/submit`, { answers }),
+  // grading is handled via attempts submit/teacher flows; keep placeholder
   grade: (attemptId: string, score: number, feedback: string) =>
     apiInstance.post(`/attempts/${attemptId}/grade`, { score, feedback }),
-  getResults: (assessmentId: string) =>
-    apiInstance.get(`/assessments/${assessmentId}/results`),
+  getResults: (evaluationId: string) =>
+    apiInstance.get(`/evaluations/${evaluationId}/results`),
 };
 
 export const adaptiveAPI = {
@@ -115,24 +140,23 @@ export const notificationsAPI = {
 };
 
 export const analyticsAPI = {
+  // Updated analytics routes
   getCourseProgress: (courseId: string) =>
-    apiInstance.get(`/analytics/courses/${courseId}/progress`),
-  getCourseDifficulties: (courseId: string) =>
-    apiInstance.get(`/analytics/courses/${courseId}/difficulties`),
+    apiInstance.get(`/analytics/course/${courseId}`),
+  getCourseStudentsAnalytics: (courseId: string) =>
+    apiInstance.get(`/analytics/course/${courseId}/students`),
   getStudentReport: (studentId: string) =>
     apiInstance.get(`/analytics/students/${studentId}/report`),
 };
 
 export const collaborationAPI = {
-  getForums: (courseId: string) =>
-    apiInstance.get(`/forums/${courseId}/threads`),
-  createThread: (courseId: string, data: object) =>
-    apiInstance.post(`/forums/${courseId}/threads`, data),
-  replyThread: (threadId: string, content: string) =>
-    apiInstance.post(`/forums/${threadId}/replies`, { content }),
-  requestTutoring: (data: object) =>
-    apiInstance.post('/tutoring/request', data),
-  getTutoring: () => apiInstance.get('/tutoring'),
+  // Collaboration service routes
+  getForums: () => apiInstance.get('/forums').then(res => res.data),
+  createThread: (data: object) => apiInstance.post('/forums', data).then(res => res.data),
+  getForumPosts: (forumId: string) => apiInstance.get(`/forums/${forumId}/posts`).then(res => res.data),
+  createForumPost: (forumId: string, data: object) => apiInstance.post(`/forums/${forumId}/posts`, data).then(res => res.data),
+  requestTutoring: (data: object) => apiInstance.post('/tutoring', data).then(res => res.data),
+  getTutoring: () => apiInstance.get('/tutoring').then(res => res.data),
 };
 
 // ─── LEGACY NAMED API BRIDGE ───
@@ -149,7 +173,14 @@ export const api = {
   getMaterials: (courseId: string, moduleId: string) => apiInstance.get(`/courses/${courseId}/modules/${moduleId}/materials`).then(res => ({ materials: res.data.materials })),
   getEvaluations: () => apiInstance.get('/evaluations').then(res => ({ evaluations: res.data.items || res.data.evaluations })),
   createEvaluation: (data: any) => assessmentsAPI.create(data).then(res => res.data),
-  startAttempt: (evaluationId: string, _studentId: string, _courseId?: string) => assessmentsAPI.startAttempt(evaluationId).then(res => res.data),
+  // Create an attempt for an evaluation and then start it
+  startAttempt: async (evaluationId: string, _studentId: string, _courseId?: string) => {
+    const created = await assessmentsAPI.createAttempt(evaluationId).then(r => r.data || r);
+    const attemptId = created?.id || created?.attemptId;
+    if (!attemptId) throw new Error('attempt_id_missing');
+    const started = await assessmentsAPI.startAttempt(attemptId).then(r => r.data || r);
+    return started;
+  },
   submitAttempt: (attemptId: string) => assessmentsAPI.submit(attemptId, []).then(res => res.data),
   gradeAttempt: (attemptId: string, score: number) => assessmentsAPI.grade(attemptId, score, '').then(res => res.data),
   getCourseProgress: (studentId: string, _courseId: string) => progressAPI.getStudentProgress(studentId).then(res => ({ item: res.data })),
@@ -157,10 +188,10 @@ export const api = {
   getRecommendations: (studentId: string) => adaptiveAPI.getRecommendations(studentId).then(data => data[0] || null),
   getCourseAnalytics: (courseId: string) => analyticsAPI.getCourseProgress(courseId).then(res => res.data),
   getCourseStudentsAnalytics: (courseId: string) => analyticsAPI.getCourseProgress(courseId).then(res => res.data),
-  getForums: () => collaborationAPI.getForums('').then(res => ({ items: res.data })),
-  createForum: (data: any) => collaborationAPI.createThread(data.courseId, data).then(res => res.data),
-  getForumPosts: (forumId: string) => collaborationAPI.getForums(forumId).then(res => ({ items: res.data })),
-  createForumPost: (forumId: string, data: any) => collaborationAPI.replyThread(forumId, data.content).then(res => res.data),
+  getForums: () => collaborationAPI.getForums().then(items => ({ items })),
+  createForum: (data: any) => collaborationAPI.createThread(data).then(res => res),
+  getForumPosts: (forumId: string) => collaborationAPI.getForumPosts(forumId).then(items => ({ items })),
+  createForumPost: (forumId: string, data: any) => collaborationAPI.createForumPost(forumId, data).then(res => res),
   getStudyGroups: () => collaborationAPI.getTutoring().then(res => ({ items: res.data })),
   createStudyGroup: (data: any) => collaborationAPI.requestTutoring(data).then(res => res.data),
   getTutoring: (_params?: any) => collaborationAPI.getTutoring().then(res => ({ items: res.data })),

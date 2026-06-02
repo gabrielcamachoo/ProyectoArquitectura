@@ -1,26 +1,25 @@
-import express from 'express';
+import { createBaseApp } from '@proyecto/shared-core/http';
+import { createLoggingMiddleware } from '@proyecto/shared-core/logging';
+import { setupSwaggerUI } from '@proyecto/shared-core/swagger';
 import routes from './routes';
-import { loggingMiddleware } from './middleware/logging';
-import { setupSwaggerUI } from './utils/swagger';
 
 export function createApp() {
-  const app = express();
-  app.use((req, res, next) => {
-    const origin = req.header('origin');
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-      res.status(204).end();
-      return;
-    }
-    next();
+  const app = createBaseApp({
+    serviceName: 'auth-service',
+    enableCors: true,
+    bodyLimit: '10mb'
   });
-  app.use(express.json());
-  app.use(loggingMiddleware);
-  app.get('/health', (_req, res) => res.json({ service: 'auth-service', status: 'ok' }));
-  setupSwaggerUI(app, 'auth-service');
+
+  // Logging middleware
+  app.use(createLoggingMiddleware('auth-service'));
+
+  // Swagger documentation
+  setupSwaggerUI(app, {
+    serviceName: 'auth-service'
+  });
+
+  // Application routes
   app.use(routes);
+
   return app;
 }

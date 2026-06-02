@@ -1,14 +1,25 @@
-import express from 'express';
+import { createBaseApp } from '@proyecto/shared-core/http';
+import { createLoggingMiddleware } from '@proyecto/shared-core/logging';
+import { setupSwaggerUI } from '@proyecto/shared-core/swagger';
 import routes from './routes';
-import { loggingMiddleware } from './middleware/logging';
-import { setupSwaggerUI } from './utils/swagger';
 
 export function createApp() {
-  const app = express();
-  app.use(express.json());
-  app.use(loggingMiddleware('progress-service'));
-  app.get('/health', (_req, res) => res.json({ service: 'progress-service', status: 'ok' }));
-  setupSwaggerUI(app, 'progress-service');
+  const app = createBaseApp({
+    serviceName: 'progress-service',
+    enableCors: true,
+    bodyLimit: '10mb'
+  });
+
+  // Logging middleware
+  app.use(createLoggingMiddleware('progress-service'));
+
+  // Swagger documentation
+  setupSwaggerUI(app, {
+    serviceName: 'progress-service'
+  });
+
+  // Application routes
   app.use(routes);
+
   return app;
 }

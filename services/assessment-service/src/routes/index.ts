@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AssessmentController } from '../controllers/assessmentController';
-import { authGuard, requireRole } from '../middleware/auth';
+import { authGuard, requireRole } from '@proyecto/shared-core/auth';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -37,13 +37,5 @@ router.post('/attempts/:attemptId/start', limiter, authGuard, requireRole('stude
 
 // POST /attempts/:attemptId/submit - Submit attempt (student)
 router.post('/attempts/:attemptId/submit', limiter, authGuard, requireRole('student'), controller.submitAttempt.bind(controller));
-
-// ============ GRADING ENDPOINTS (CRITICAL <2s DR-01) ============
-
-// POST /attempts/:attemptId/grade - Grade attempt (teacher/admin) - MUST be <2s response
-router.post('/attempts/:attemptId/grade', limiter, authGuard, requireRole('teacher', 'admin'), controller.gradeAttempt.bind(controller));
-
-// PUT /grades/:gradeId - Update grade manually (teacher/admin)
-router.put('/grades/:gradeId', limiter, authGuard, requireRole('teacher', 'admin'), controller.updateGrade.bind(controller));
 
 export default router;

@@ -85,7 +85,11 @@ services:
       - '15672:15672'
 
   auth-service:
-    build: ./services/auth-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: auth-service
     env_file: .env
     environment:
       PORT: 3000
@@ -93,7 +97,11 @@ services:
       - '3000:3000'
 
   course-service:
-    build: ./services/course-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: course-service
     env_file: .env
     environment:
       PORT: 3000
@@ -101,7 +109,11 @@ services:
       - '3001:3000'
 
   assessment-service:
-    build: ./services/assessment-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: assessment-service
     env_file: .env
     environment:
       PORT: 3000
@@ -109,7 +121,11 @@ services:
       - '3002:3000'
 
   progress-service:
-    build: ./services/progress-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: progress-service
     env_file: .env
     environment:
       PORT: 3000
@@ -117,7 +133,11 @@ services:
       - '3003:3000'
 
   adaptive-service:
-    build: ./services/adaptive-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: adaptive-service
     env_file: .env
     environment:
       PORT: 3000
@@ -125,7 +145,11 @@ services:
       - '3004:3000'
 
   collaboration-service:
-    build: ./services/collaboration-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: collaboration-service
     env_file: .env
     environment:
       PORT: 3000
@@ -133,7 +157,11 @@ services:
       - '3005:3000'
 
   analytics-service:
-    build: ./services/analytics-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: analytics-service
     env_file: .env
     environment:
       PORT: 3000
@@ -142,7 +170,11 @@ services:
       - '3006:3000'
 
   notification-service:
-    build: ./services/notification-service
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+      args:
+        SERVICE_WORKSPACE: notification-service
     env_file: .env
     environment:
       PORT: 3000

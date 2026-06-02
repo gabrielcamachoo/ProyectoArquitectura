@@ -77,12 +77,32 @@ export class CourseService {
 
   /**
    * List courses - filter by status and/or teacher
+   * Returns paginated results
    */
-  async listCourses(filters?: {
-    status?: 'draft' | 'published' | 'archived';
-    createdBy?: string;
-  }): Promise<Course[]> {
-    return this.repo.listCourses(filters);
+  async listCourses(
+    filters?: { status?: 'draft' | 'published' | 'archived'; createdBy?: string },
+    page?: number,
+    limit?: number
+  ): Promise<{ courses: Course[]; total: number }> {
+    const allCourses = await this.repo.listCourses(filters);
+    
+    // If pagination is requested
+    if (page !== undefined && limit !== undefined) {
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedCourses = allCourses.slice(startIndex, endIndex);
+      
+      return {
+        courses: paginatedCourses,
+        total: allCourses.length
+      };
+    }
+    
+    // Return all courses if no pagination
+    return {
+      courses: allCourses,
+      total: allCourses.length
+    };
   }
 
   /**
@@ -119,7 +139,7 @@ export class CourseService {
 
     const updated = await this.repo.updateCourse(courseId, {
       name: input.name?.trim(),
-      description: input.description?.trim(),
+      description: input.description || undefined,
       maxStudents: input.maxStudents,
       learningObjectives: input.learningObjectives,
       updatedBy: input.updatedBy
@@ -134,12 +154,16 @@ export class CourseService {
   }
 
   /**
-   * Publish a course (only draft courses can be published)
-   * Changes status from draft → published
+   * Publish course - changes status to 'published'
+   * Only owner or admin can publish
    */
   async publishCourse(courseId: string, publishedBy: string): Promise<Course> {
     if (!courseId) {
       throw new Error('course_id_required');
+    }
+
+    if (!publishedBy) {
+      throw new Error('publisher_id_required');
     }
 
     const course = await this.repo.getCourse(courseId);
@@ -147,8 +171,9 @@ export class CourseService {
       throw new Error('course_not_found');
     }
 
+    // Can only publish if status is 'draft'
     if (course.status !== 'draft') {
-      throw new Error('only_draft_courses_can_publish');
+      throw new Error('course_not_draft');
     }
 
     const published = await this.repo.publishCourse(courseId, publishedBy);
@@ -156,288 +181,104 @@ export class CourseService {
       throw new Error('publish_failed');
     }
 
-    console.log(`[CourseService] Course published: ${courseId}`);
+    console.log(`[CourseService] Course published: ${courseId} by ${publishedBy}`);
     return published;
-  }
-
-  /**
-   * Archive a course
-   */
-  async archiveCourse(courseId: string, archivedBy: string): Promise<Course> {
-    if (!courseId) {
-      throw new Error('course_id_required');
-    }
-
-    const course = await this.repo.getCourse(courseId);
-    if (!course) {
-      throw new Error('course_not_found');
-    }
-
-    const archived = await this.repo.archiveCourse(courseId, archivedBy);
-    if (!archived) {
-      throw new Error('archive_failed');
-    }
-
-    console.log(`[CourseService] Course archived: ${courseId}`);
-    return archived;
   }
 
   // ============ MODULE SERVICE METHODS ============
 
   /**
-   * Add module to course
-   */
-  async addModule(courseId: string, input: {
-    title: string;
-    order?: number;
-    createdBy: string;
-  }): Promise<ModuleDTO> {
-    if (!courseId) {
-      throw new Error('course_id_required');
-    }
-
-    const course = await this.repo.getCourse(courseId);
-    if (!course) {
-      throw new Error('course_not_found');
-    }
-
-    if (!input.title || input.title.trim().length === 0) {
-      throw new Error('module_title_required');
-    }
-
-    if (input.title.length > 255) {
-      throw new Error('module_title_too_long');
-    }
-
-    // Auto-increment order if not provided
-    const modules = await this.repo.listModulesByCourse(courseId);
-    const nextOrder = input.order || (modules.length + 1);
-
-    const module = await this.repo.createModule(courseId, {
-      title: input.title.trim(),
-      order: nextOrder,
-      createdBy: input.createdBy
-    });
-
-    console.log(`[CourseService] Module created: ${module.id} in course ${courseId}`);
-    return module;
-  }
-
-  /**
-   * Get modules for a course
+   * Get all modules for a course
    */
   async getModules(courseId: string): Promise<ModuleDTO[]> {
     if (!courseId) {
       throw new Error('course_id_required');
     }
 
-    const course = await this.repo.getCourse(courseId);
-    if (!course) {
-      throw new Error('course_not_found');
-    }
-
-    return this.repo.listModulesByCourse(courseId);
+    return this.repo.getModules(courseId);
   }
 
   /**
-   * Update module
+   * Add module to course
    */
-  async updateModule(moduleId: string, input: {
-    title?: string;
+  async addModule(courseId: string, moduleData: {
+    title: string;
+    description?: string;
     order?: number;
-    status?: 'draft' | 'published' | 'archived';
-    updatedBy: string;
-  }): Promise<ModuleDTO> {
-    if (!moduleId) {
-      throw new Error('module_id_required');
+  }, createdBy: string): Promise<ModuleDTO> {
+    if (!courseId) {
+      throw new Error('course_id_required');
     }
 
-    const module = await this.repo.getModule(moduleId);
-    if (!module) {
-      throw new Error('module_not_found');
+    if (!moduleData.title || moduleData.title.trim().length === 0) {
+      throw new Error('module_title_required');
     }
 
-    if (input.title && input.title.length > 255) {
-      throw new Error('module_title_too_long');
-    }
-
-    const updated = await this.repo.updateModule(moduleId, {
-      title: input.title?.trim(),
-      order: input.order,
-      status: input.status,
-      updatedBy: input.updatedBy
-    });
-
-    if (!updated) {
-      throw new Error('module_update_failed');
-    }
-
-    console.log(`[CourseService] Module updated: ${moduleId}`);
-    return updated;
-  }
-
-  /**
-   * Delete module and all its materials
-   */
-  async deleteModule(moduleId: string): Promise<boolean> {
-    if (!moduleId) {
-      throw new Error('module_id_required');
-    }
-
-    const module = await this.repo.getModule(moduleId);
-    if (!module) {
-      throw new Error('module_not_found');
-    }
-
-    const result = await this.repo.deleteModule(moduleId);
-    console.log(`[CourseService] Module deleted: ${moduleId}`);
-    return result;
+    return this.repo.addModule(courseId, moduleData, createdBy);
   }
 
   // ============ MATERIAL SERVICE METHODS ============
 
   /**
-   * Add material to module
+   * Get all materials for a module
    */
-  async addMaterial(moduleId: string, input: {
-    title: string;
-    type: string; // 'video' | 'pdf' | 'quiz' | 'document'
-    url: string;
-    visibility?: 'private' | 'public';
-    createdBy: string;
-  }): Promise<MaterialDTO> {
+  async getMaterials(courseId: string, moduleId: string): Promise<MaterialDTO[]> {
+    if (!courseId) {
+      throw new Error('course_id_required');
+    }
+
     if (!moduleId) {
       throw new Error('module_id_required');
     }
 
-    const module = await this.repo.getModule(moduleId);
-    if (!module) {
-      throw new Error('module_not_found');
+    return this.repo.getMaterials(courseId, moduleId);
+  }
+
+  /**
+   * Add material to module
+   */
+  async addMaterial(courseId: string, moduleId: string, materialData: {
+    title: string;
+    type: 'video' | 'document' | 'quiz' | 'assignment';
+    content: string;
+    url?: string;
+  }, createdBy: string): Promise<MaterialDTO> {
+    if (!courseId) {
+      throw new Error('course_id_required');
     }
 
-    if (!input.title || input.title.trim().length === 0) {
+    if (!moduleId) {
+      throw new Error('module_id_required');
+    }
+
+    if (!materialData.title || materialData.title.trim().length === 0) {
       throw new Error('material_title_required');
     }
 
-    if (input.title.length > 255) {
-      throw new Error('material_title_too_long');
-    }
-
-    if (!input.type) {
+    if (!materialData.type) {
       throw new Error('material_type_required');
     }
 
-    if (!input.url) {
-      throw new Error('material_url_required');
+    const validTypes = ['video', 'document', 'quiz', 'assignment'];
+    if (!validTypes.includes(materialData.type)) {
+      throw new Error('invalid_material_type');
     }
 
-    try {
-      new URL(input.url);
-    } catch {
-      throw new Error('material_url_invalid');
-    }
-
-    const validTypes = ['video', 'pdf', 'quiz', 'document', 'image', 'audio', 'link'];
-    if (!validTypes.includes(input.type)) {
-      throw new Error(`material_type_invalid. Valid types: ${validTypes.join(', ')}`);
-    }
-
-    const material = await this.repo.createMaterial(moduleId, {
-      title: input.title.trim(),
-      type: input.type,
-      url: input.url,
-      visibility: input.visibility || 'private',
-      createdBy: input.createdBy
-    });
-
-    console.log(`[CourseService] Material created: ${material.id} in module ${moduleId}`);
-    return material;
-  }
-
-  /**
-   * Get materials for a module
-   */
-  async getMaterials(moduleId: string): Promise<MaterialDTO[]> {
-    if (!moduleId) {
-      throw new Error('module_id_required');
-    }
-
-    const module = await this.repo.getModule(moduleId);
-    if (!module) {
-      throw new Error('module_not_found');
-    }
-
-    return this.repo.listMaterialsByModule(moduleId);
-  }
-
-  /**
-   * Update material
-   */
-  async updateMaterial(materialId: string, input: {
-    title?: string;
-    type?: string;
-    url?: string;
-    visibility?: 'private' | 'public';
-    updatedBy: string;
-  }): Promise<MaterialDTO> {
-    if (!materialId) {
-      throw new Error('material_id_required');
-    }
-
-    const material = await this.repo.getMaterial(materialId);
-    if (!material) {
-      throw new Error('material_not_found');
-    }
-
-    if (input.url) {
-      try {
-        new URL(input.url);
-      } catch {
-        throw new Error('material_url_invalid');
-      }
-    }
-
-    const updated = await this.repo.updateMaterial(materialId, {
-      title: input.title?.trim(),
-      type: input.type,
-      url: input.url,
-      visibility: input.visibility,
-      updatedBy: input.updatedBy
-    });
-
-    if (!updated) {
-      throw new Error('material_update_failed');
-    }
-
-    console.log(`[CourseService] Material updated: ${materialId}`);
-    return updated;
-  }
-
-  /**
-   * Delete material
-   */
-  async deleteMaterial(materialId: string): Promise<boolean> {
-    if (!materialId) {
-      throw new Error('material_id_required');
-    }
-
-    const material = await this.repo.getMaterial(materialId);
-    if (!material) {
-      throw new Error('material_not_found');
-    }
-
-    const result = await this.repo.deleteMaterial(materialId);
-    console.log(`[CourseService] Material deleted: ${materialId}`);
-    return result;
+    return this.repo.addMaterial(courseId, moduleId, materialData, createdBy);
   }
 }
 
 // Singleton instance
-let serviceInstance: CourseService | null = null;
+let courseServiceInstance: CourseService | null = null;
 
 export function getCourseService(): CourseService {
-  if (!serviceInstance) {
-    serviceInstance = new CourseService();
+  if (!courseServiceInstance) {
+    courseServiceInstance = new CourseService();
   }
-  return serviceInstance;
+  return courseServiceInstance;
+}
+
+// For testing
+export function resetCourseService(): void {
+  courseServiceInstance = null;
 }
