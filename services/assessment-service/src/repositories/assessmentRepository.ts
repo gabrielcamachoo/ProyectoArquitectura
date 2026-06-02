@@ -1,4 +1,5 @@
 import { TypeORMAssessmentRepository, EvaluationDTO, AttemptDTO, GradeDTO, EvaluationType, AttemptStatus } from './TypeORMAssessmentRepository';
+import { AppDataSource } from './dataSource';
 
 /**
  * Hybrid assessment repository - PostgreSQL primary + in-memory fallback
@@ -8,23 +9,12 @@ export class AssessmentRepository {
   private inMemoryEvaluations = new Map<string, EvaluationDTO>();
   private inMemoryAttempts = new Map<string, AttemptDTO>();
   private inMemoryGrades = new Map<string, GradeDTO>();
-  private usePostgres = false;
+  private get usePostgres(): boolean {
+    return AppDataSource.isInitialized;
+  }
 
   constructor() {
     this.typeormRepo = new TypeORMAssessmentRepository();
-    this.initializeDatabase();
-  }
-
-  private async initializeDatabase(): Promise<void> {
-    try {
-      // Test connection
-      await this.typeormRepo.listEvaluationsByCourse('test-id');
-      this.usePostgres = true;
-      console.log('[AssessmentRepository] PostgreSQL connected');
-    } catch (error) {
-      this.usePostgres = false;
-      console.warn('[AssessmentRepository] PostgreSQL unavailable, using in-memory storage');
-    }
   }
 
   // ============ EVALUATION METHODS ============

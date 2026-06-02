@@ -1,4 +1,5 @@
 import { TypeORMCourseRepository, Course, CreateCourseInput, ModuleDTO, MaterialDTO } from './TypeORMCourseRepository';
+import { AppDataSource } from './dataSource';
 
 /**
  * Hybrid course repository - PostgreSQL primary + in-memory fallback
@@ -8,23 +9,14 @@ export class CourseRepository {
   private inMemoryCourses = new Map<string, Course>();
   private inMemoryModules = new Map<string, ModuleDTO>();
   private inMemoryMaterials = new Map<string, MaterialDTO>();
-  private usePostgres = false;
+  private inMemoryEnrollments = new Map<string, Set<string>>(); // studentId -> Set<courseId>
+
+  private get usePostgres(): boolean {
+    return AppDataSource.isInitialized;
+  }
 
   constructor() {
     this.typeormRepo = new TypeORMCourseRepository();
-    this.initializeDatabase();
-  }
-
-  private async initializeDatabase(): Promise<void> {
-    try {
-      // Test connection
-      await this.typeormRepo.listCourses();
-      this.usePostgres = true;
-      console.log('[CourseRepository] PostgreSQL connected');
-    } catch (error) {
-      this.usePostgres = false;
-      console.warn('[CourseRepository] PostgreSQL unavailable, using in-memory storage');
-    }
   }
 
   // ============ COURSE METHODS ============
@@ -55,6 +47,30 @@ export class CourseRepository {
       return this.typeormRepo.getCourse(id);
     }
     return this.inMemoryCourses.get(id) || null;
+  }
+
+  // ============ ENROLLMENT METHODS ============
+  async enrollStudent(courseId: string, studentId: string): Promise<void> {
+    if (this.usePostgres) {
+      return this.typeormRepo.enrollStudent(courseId, studentId);
+    }
+    if (!this.inMemoryEnrollments.has(studentId)) {
+      this.inMemoryEnrollments.set(studentId, new Set());
+    }
+    this.inMemoryEnrollments.get(studentId)!.add(courseId);
+  }
+
+  async listStudentCourses(studentId: string): Promise<Course[]> {
+    if (this.usePostgres) {
+      return this.typeormRepo.listStudentCourses(studentId);
+    }
+    const courseIds = this.inMemoryEnrollments.get(studentId) || new Set();
+    const courses: Course[] = [];
+    for (const cid of courseIds) {
+      const c = this.inMemoryCourses.get(cid);
+      if (c) courses.push(c);
+    }
+    return courses;
   }
 
   async listCourses(filter?: { status?: string; createdBy?: string }): Promise<Course[]> {

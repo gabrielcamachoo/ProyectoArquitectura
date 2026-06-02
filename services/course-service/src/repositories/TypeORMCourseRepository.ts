@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CourseEntity, Module, Material } from '../domain/entities';
+import { CourseEntity, Module, Material, EnrollmentEntity } from '../domain/entities';
 import { AppDataSource } from './dataSource';
 
 export interface Course {
@@ -44,6 +44,7 @@ export class TypeORMCourseRepository {
   private courseRepo = AppDataSource.getRepository(CourseEntity);
   private moduleRepo = AppDataSource.getRepository(Module);
   private materialRepo = AppDataSource.getRepository(Material);
+  private enrollmentRepo = AppDataSource.getRepository(EnrollmentEntity);
 
   // ============ COURSE METHODS ============
   async createCourse(input: CreateCourseInput): Promise<Course> {
@@ -127,6 +128,30 @@ export class TypeORMCourseRepository {
   async deleteCourse(id: string): Promise<boolean> {
     await this.courseRepo.delete(id);
     return true;
+  }
+
+  // ============ ENROLLMENT METHODS ============
+  async enrollStudent(courseId: string, studentId: string): Promise<void> {
+    // Check if already enrolled
+    const existing = await this.enrollmentRepo.findOne({
+      where: { courseId, studentId }
+    });
+    if (existing) return; // Already enrolled
+
+    const enrollment = this.enrollmentRepo.create({
+      courseId,
+      studentId
+    });
+    await this.enrollmentRepo.save(enrollment);
+  }
+
+  async listStudentCourses(studentId: string): Promise<Course[]> {
+    const enrollments = await this.enrollmentRepo.find({
+      where: { studentId },
+      relations: ['course']
+    });
+    
+    return enrollments.map(e => this.entityToCourse(e.course));
   }
 
   // ============ MODULE METHODS ============

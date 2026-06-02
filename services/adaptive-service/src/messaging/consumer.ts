@@ -14,7 +14,16 @@ export async function startConsumer(recommendationService: RecommendationService
     return;
   }
 
-  const connection = await amqp.connect(url);
+  const connectWithRetry = async (retryCount = 0): Promise<any> => {
+    try {
+      return await amqp.connect(url);
+    } catch (error) {
+      console.log(`[RabbitMQ] Connection failed, retrying in 5s... (${retryCount + 1})`);
+      await new Promise(res => setTimeout(res, 5000));
+      return connectWithRetry(retryCount + 1);
+    }
+  };
+  const connection = await connectWithRetry();
   const channel = await connection.createChannel();
   await channel.assertExchange(EXCHANGE, 'topic', { durable: true });
   await channel.assertExchange(DLX, 'topic', { durable: true });
@@ -30,7 +39,7 @@ export async function startConsumer(recommendationService: RecommendationService
 
   console.log(JSON.stringify({ level: 'info', event: 'consumer-started', queue, category: 'technical_log' }));
 
-  await channel.consume(queue, async (msg) => {
+  await channel.consume(queue, async (msg: any) => {
     if (!msg) return;
     try {
       const raw = JSON.parse(msg.content.toString());

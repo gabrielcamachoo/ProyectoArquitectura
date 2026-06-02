@@ -1,44 +1,30 @@
 -- Migration: Create assessment-service schema (evaluations and attempts)
 -- 006_assessment_service_schema.sql
 
-CREATE TABLE IF NOT EXISTS evaluations (
-  id UUID PRIMARY KEY,
-  course_id UUID NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  type VARCHAR(50) NOT NULL,
-  weight NUMERIC(5, 2) NOT NULL,
-  total_points INT NOT NULL DEFAULT 100,
-  pass_threshold NUMERIC(5, 2) NOT NULL DEFAULT 60,
-  description TEXT,
-  max_attempts INT NOT NULL DEFAULT 1,
-  start_date TIMESTAMPTZ,
-  deadline TIMESTAMPTZ,
-  rubric_config JSONB,
-  status VARCHAR(30) NOT NULL DEFAULT 'draft',
-  created_by UUID,
-  updated_by UUID,
-  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+-- Alter evaluations table (already created in 001)
+ALTER TABLE evaluations
+  ADD COLUMN IF NOT EXISTS total_points INT NOT NULL DEFAULT 100,
+  ADD COLUMN IF NOT EXISTS pass_threshold NUMERIC(5, 2) NOT NULL DEFAULT 60,
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS max_attempts INT NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS start_date TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS rubric_config JSONB,
+  ADD COLUMN IF NOT EXISTS status VARCHAR(30) NOT NULL DEFAULT 'draft';
 
-CREATE TABLE IF NOT EXISTS attempts (
-  id UUID PRIMARY KEY,
-  evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
-  student_id UUID NOT NULL,
-  course_id UUID NOT NULL,
-  attempt_number INT NOT NULL DEFAULT 1,
-  status VARCHAR(30) DEFAULT 'created' CHECK (status IN ('created', 'in_progress', 'submitted', 'graded', 'annulled')),
-  started_at TIMESTAMPTZ,
-  submitted_at TIMESTAMPTZ,
-  score NUMERIC(5, 2),
-  is_passed BOOLEAN,
-  time_spent_seconds INT,
-  answers JSONB,
-  created_by UUID,
-  updated_by UUID,
-  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+-- Alter attempts table (already created in 001)
+ALTER TABLE attempts
+  ADD COLUMN IF NOT EXISTS course_id UUID,
+  ADD COLUMN IF NOT EXISTS attempt_number INT NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS is_passed BOOLEAN,
+  ADD COLUMN IF NOT EXISTS time_spent_seconds INT,
+  ADD COLUMN IF NOT EXISTS answers JSONB;
+
+-- Backfill course_id in attempts based on evaluations
+UPDATE attempts a
+SET course_id = e.course_id
+FROM evaluations e
+WHERE a.evaluation_id = e.id AND a.course_id IS NULL;
 
 -- Grades table (used by GradeEntity)
 CREATE TABLE IF NOT EXISTS grades (

@@ -18,12 +18,21 @@ async function getChannel(url?: string): Promise<amqp.Channel | null> {
   if (!url) return null;
   if (!channelPromise) {
     channelPromise = (async () => {
-      const conn = await amqp.connect(url);
+      const connectWithRetry = async (retryCount = 0): Promise<any> => {
+        try {
+          return await amqp.connect(url);
+        } catch (error) {
+          console.log(`[RabbitMQ Publisher] Connection failed, retrying in 5s... (${retryCount + 1})`);
+          await new Promise(res => setTimeout(res, 5000));
+          return connectWithRetry(retryCount + 1);
+        }
+      };
+      const conn = await connectWithRetry();
       const ch = await conn.createChannel();
       await ch.assertExchange(EXCHANGE, 'topic', { durable: true });
       await ch.assertExchange('academic.events.dlq', 'topic', { durable: true });
       return ch;
-    })().catch(() => null);
+    })();
   }
   return channelPromise;
 }

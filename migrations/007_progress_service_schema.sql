@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS progress_records (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_progress_student_id ON progress_records(student_id);
-CREATE INDEX idx_progress_course_id ON progress_records(course_id);
-CREATE INDEX idx_progress_student_course ON progress_records(student_id, course_id);
-CREATE INDEX idx_progress_status ON progress_records(status);
+CREATE INDEX idx_progress_records_student_id ON progress_records(student_id);
+CREATE INDEX idx_progress_records_course_id ON progress_records(course_id);
+CREATE INDEX idx_progress_records_student_course ON progress_records(student_id, course_id);
+CREATE INDEX idx_progress_records_status ON progress_records(status);

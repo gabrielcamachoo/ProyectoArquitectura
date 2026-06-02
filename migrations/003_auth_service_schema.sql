@@ -54,3 +54,19 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
 CREATE INDEX IF NOT EXISTS idx_permissions_role_id ON permissions(role_id);
+
+-- Seed data: Demo user and Demo course for other services to reference
+INSERT INTO users (id, full_name, institutional_email, password_hash, role_id, status)
+SELECT 
+  '00000000-0000-4000-8000-000000000010',
+  E'\\x44656d6f2054656163686572'::bytea, -- 'Demo Teacher' in hex
+  E'\\x746561636865724064656d6f2e656475'::bytea, -- 'teacher@demo.edu' in hex
+  'hash',
+  id,
+  'active'
+FROM roles WHERE name = 'teacher'
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO courses (id, name, description, teacher_id, status) VALUES
+  ('00000000-0000-4000-8000-000000000001', 'Arquitectura de Software', 'Curso Integrador', '00000000-0000-4000-8000-000000000010', 'published')
+ON CONFLICT (id) DO NOTHING;

@@ -85,6 +85,25 @@ export class CourseService {
     return this.repo.listCourses(filters);
   }
 
+  // ============ ENROLLMENT METHODS ============
+
+  async enrollStudent(courseId: string, studentId: string): Promise<void> {
+    if (!courseId) throw new Error('course_id_required');
+    if (!studentId) throw new Error('student_id_required');
+
+    const course = await this.repo.getCourse(courseId);
+    if (!course) throw new Error('course_not_found');
+
+    // Add logic here to check max_students if needed
+    
+    await this.repo.enrollStudent(courseId, studentId);
+  }
+
+  async listStudentCourses(studentId: string): Promise<Course[]> {
+    if (!studentId) throw new Error('student_id_required');
+    return this.repo.listStudentCourses(studentId);
+  }
+
   /**
    * Update course details
    * Only owner or admin can update

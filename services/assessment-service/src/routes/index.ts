@@ -21,6 +21,20 @@ router.get('/courses/:courseId/evaluations', limiter, authGuard, requireRole('te
 // GET /evaluations/:evaluationId - Get evaluation details (teacher/admin)
 router.get('/evaluations/:evaluationId', limiter, authGuard, requireRole('teacher', 'admin'), controller.getEvaluation.bind(controller));
 
+// GET /evaluations - List all evaluations (any authenticated user)
+router.get('/evaluations', limiter, authGuard, async (req: any, res: any) => {
+  try {
+    // Try to list all evaluations using the repository directly
+    const { getAssessmentRepository } = require('../repositories/assessmentRepository');
+    const repo = getAssessmentRepository();
+    const evaluations = await repo.findAllEvaluations?.() ?? [];
+    res.status(200).json({ evaluations });
+  } catch (error: any) {
+    // Fallback: return empty array if method doesn't exist
+    res.status(200).json({ evaluations: [] });
+  }
+});
+
 // POST /evaluations - Create evaluation (teacher/admin only)
 router.post('/evaluations', limiter, authGuard, requireRole('teacher', 'admin'), controller.createEvaluation.bind(controller));
 

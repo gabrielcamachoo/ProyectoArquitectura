@@ -14,7 +14,7 @@ let publicKey: string | null = null;
 
 const normalizeKey = (value: string | undefined): string | null => {
   if (!value) return null;
-  return value.replace(/\\n/g, '\n');
+  return value.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
 };
 
 const getPublicKey = (): string => {

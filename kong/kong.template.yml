@@ -25,22 +25,14 @@ services:
         paths:
           - /auth/logout
           - /auth/users
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
-          - name: cors
-            config:
-              origins:
-              - http://localhost:5173
-              methods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-              headers:
-              - Authorization
-              - Content-Type
-              credentials: true
 __JWT_PLUGIN__
 
   - name: course-service
@@ -49,6 +41,12 @@ __JWT_PLUGIN__
       - name: course-routes
         paths:
           - /courses
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -59,7 +57,14 @@ __JWT_PLUGIN__
       - name: assessment-routes
         paths:
           - /evaluations
+          - /assessments
           - /attempts
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -70,6 +75,12 @@ __JWT_PLUGIN__
       - name: progress-routes
         paths:
           - /progress
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -80,6 +91,12 @@ __JWT_PLUGIN__
       - name: adaptive-routes
         paths:
           - /recommendations
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -92,6 +109,12 @@ __JWT_PLUGIN__
           - /forums
           - /study-groups
           - /tutoring
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -102,6 +125,12 @@ __JWT_PLUGIN__
       - name: analytics-routes
         paths:
           - /analytics
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -112,6 +141,12 @@ __JWT_PLUGIN__
       - name: notification-routes
         paths:
           - /notifications
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
         strip_path: false
         plugins:
 __JWT_PLUGIN__
@@ -127,3 +162,21 @@ plugins:
       minute: 100
       policy: local
       limit_by: consumer
+  - name: cors
+    config:
+      origins:
+      - http://localhost:5173
+      methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+      - OPTIONS
+      headers:
+      - Authorization
+      - Content-Type
+      - Accept
+      - Origin
+      credentials: true
+      preflight_continue: false

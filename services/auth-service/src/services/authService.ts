@@ -10,7 +10,7 @@ const isPlaceholderKey = (value?: string) =>
   !value || value.includes('<rsa-') || !value.includes('BEGIN');
 const normalizeKey = (value: string | undefined, fallback: string): string => {
   if (isPlaceholderKey(value)) return fallback;
-  return value!.replace(/\\n/g, '\n');
+  return value!.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
 };
 const PRIVATE_KEY = normalizeKey(
   process.env.JWT_PRIVATE_KEY,

@@ -52,9 +52,9 @@ CREATE INDEX idx_tutoring_sessions_status ON tutoring_sessions(status);
 
 -- Seed data for demo
 INSERT INTO forums (id, course_id, title, status, moderator_id) VALUES
-  ('00000000-0000-4000-8000-000000000020', '00000000-0000-4000-8000-000000000001', 'Foro general — Arquitectura de Software', 'active', 'teacher-demo')
+  ('00000000-0000-4000-8000-000000000020', '00000000-0000-4000-8000-000000000001', 'Foro general — Arquitectura de Software', 'active', '00000000-0000-4000-8000-000000000010')
   ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO forum_posts (id, forum_id, author_id, content, created_at) VALUES
-  ('00000000-0000-4000-8000-000000000021', '00000000-0000-4000-8000-000000000020', 'teacher-demo', 'Bienvenidos al foro del curso. Compartan dudas sobre microservicios y el proyecto integrador.', CURRENT_TIMESTAMP)
+  ('00000000-0000-4000-8000-000000000021', '00000000-0000-4000-8000-000000000020', '00000000-0000-4000-8000-000000000010', 'Bienvenidos al foro del curso. Compartan dudas sobre microservicios y el proyecto integrador.', CURRENT_TIMESTAMP)
   ON CONFLICT (id) DO NOTHING;

@@ -15,8 +15,11 @@ const limiter = rateLimit({
 
 // ============ COURSE ENDPOINTS ============
 
-// GET /courses - List all courses (public, optional filter by status)
+// GET /courses - List all courses
 router.get('/courses', limiter, controller.listCourses.bind(controller));
+
+// GET /courses/enrolled - List courses student is enrolled in
+router.get('/courses/enrolled', limiter, authGuard, controller.listEnrolledCourses.bind(controller));
 
 // GET /courses/:courseId - Get course details (public)
 router.get('/courses/:courseId', limiter, controller.getCourse.bind(controller));
@@ -45,5 +48,10 @@ router.get('/courses/:courseId/modules/:moduleId/materials', limiter, controller
 
 // POST /courses/:courseId/modules/:moduleId/materials - Add material (owner or admin only)
 router.post('/courses/:courseId/modules/:moduleId/materials', limiter, authGuard, requireRole('teacher', 'admin'), controller.addMaterial.bind(controller));
+
+// ============ ENROLLMENT ============
+
+// POST /courses/:courseId/enroll - Enroll student in course
+router.post('/courses/:courseId/enroll', limiter, authGuard, controller.enrollStudent.bind(controller));
 
 export default router;

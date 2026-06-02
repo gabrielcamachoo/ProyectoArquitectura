@@ -78,6 +78,7 @@ export const authAPI = {
 
 export const coursesAPI = {
   list: () => apiInstance.get('/courses'),
+  getEnrolled: () => apiInstance.get('/courses/enrolled'),
   get: (id: string) => apiInstance.get(`/courses/${id}`),
   create: (data: object) => apiInstance.post('/courses', data),
   update: (id: string, data: object) => apiInstance.put(`/courses/${id}`, data),
@@ -89,22 +90,23 @@ export const coursesAPI = {
 };
 
 export const assessmentsAPI = {
-  create: (data: object) => apiInstance.post('/assessments', data),
-  get: (id: string) => apiInstance.get(`/assessments/${id}`),
+  create: (data: object) => apiInstance.post('/evaluations', data),
+  get: (id: string) => apiInstance.get(`/evaluations/${id}`),
+  list: () => apiInstance.get('/evaluations'),
   startAttempt: (assessmentId: string) =>
-    apiInstance.post(`/assessments/${assessmentId}/attempts`),
+    apiInstance.post(`/evaluations/${assessmentId}/attempts`),
   submit: (attemptId: string, answers: object[]) =>
     apiInstance.post(`/attempts/${attemptId}/submit`, { answers }),
   grade: (attemptId: string, score: number, feedback: string) =>
     apiInstance.post(`/attempts/${attemptId}/grade`, { score, feedback }),
   getResults: (assessmentId: string) =>
-    apiInstance.get(`/assessments/${assessmentId}/results`),
+    apiInstance.get(`/evaluations/${assessmentId}/results`),
 };
 
 export const adaptiveAPI = {
   getRecommendations: (studentId: string) =>
     apiInstance.get(`/recommendations/student/${studentId}`)
-      .then(res => res.data.recommendations),
+      .then(res => res.data.recommendations ?? res.data ?? []),
 };
 
 export const progressAPI = {
@@ -115,30 +117,38 @@ export const progressAPI = {
 export const notificationsAPI = {
   getStudentNotifications: (studentId: string) =>
     apiInstance.get(`/notifications/student/${studentId}`)
-      .then(res => res.data.notifications),
+      .then(res => res.data.notifications ?? res.data ?? []),
   markRead: (notificationId: string) =>
     apiInstance.put(`/notifications/${notificationId}/read`),
 };
 
 export const analyticsAPI = {
   getCourseProgress: (courseId: string) =>
-    apiInstance.get(`/analytics/courses/${courseId}/progress`),
+    apiInstance.get(`/analytics/course/${courseId}`),
   getCourseDifficulties: (courseId: string) =>
-    apiInstance.get(`/analytics/courses/${courseId}/difficulties`),
+    apiInstance.get(`/analytics/course/${courseId}`),
+  getCourseStudents: (courseId: string) =>
+    apiInstance.get(`/analytics/course/${courseId}/students`),
   getStudentReport: (studentId: string) =>
-    apiInstance.get(`/analytics/students/${studentId}/report`),
+    apiInstance.get(`/analytics/course/${studentId}`),
 };
 
 export const collaborationAPI = {
-  getForums: (courseId: string) =>
-    apiInstance.get(`/forums/${courseId}/threads`),
-  createThread: (courseId: string, data: object) =>
-    apiInstance.post(`/forums/${courseId}/threads`, data),
-  replyThread: (threadId: string, content: string) =>
-    apiInstance.post(`/forums/${threadId}/replies`, { content }),
-  requestTutoring: (data: object) =>
-    apiInstance.post('/tutoring/request', data),
+  getForums: () =>
+    apiInstance.get('/forums'),
+  getForumPosts: (forumId: string) =>
+    apiInstance.get(`/forums/${forumId}/posts`),
+  createForum: (data: object) =>
+    apiInstance.post('/forums', data),
+  createForumPost: (forumId: string, data: object) =>
+    apiInstance.post(`/forums/${forumId}/posts`, data),
+  getStudyGroups: () =>
+    apiInstance.get('/study-groups'),
+  createStudyGroup: (data: object) =>
+    apiInstance.post('/study-groups', data),
   getTutoring: () => apiInstance.get('/tutoring'),
+  createTutoring: (data: object) =>
+    apiInstance.post('/tutoring', data),
 };
 
 // ─── LEGACY NAMED API BRIDGE ───
@@ -163,14 +173,14 @@ export const api = {
   getRecommendations: (studentId: string) => adaptiveAPI.getRecommendations(studentId).then(data => data[0] || null),
   getCourseAnalytics: (courseId: string) => analyticsAPI.getCourseProgress(courseId).then(res => res.data),
   getCourseStudentsAnalytics: (courseId: string) => analyticsAPI.getCourseProgress(courseId).then(res => res.data),
-  getForums: () => collaborationAPI.getForums('').then(res => ({ items: res.data })),
-  createForum: (data: any) => collaborationAPI.createThread(data.courseId, data).then(res => res.data),
-  getForumPosts: (forumId: string) => collaborationAPI.getForums(forumId).then(res => ({ items: res.data })),
-  createForumPost: (forumId: string, data: any) => collaborationAPI.replyThread(forumId, data.content).then(res => res.data),
-  getStudyGroups: () => collaborationAPI.getTutoring().then(res => ({ items: res.data })),
-  createStudyGroup: (data: any) => collaborationAPI.requestTutoring(data).then(res => res.data),
-  getTutoring: (_params?: any) => collaborationAPI.getTutoring().then(res => ({ items: res.data })),
-  createTutoring: (data: any) => collaborationAPI.requestTutoring(data).then(res => res.data),
+  getForums: () => collaborationAPI.getForums().then(res => ({ items: res.data.forums ?? res.data ?? [] })),
+  createForum: (data: any) => collaborationAPI.createForum(data).then(res => res.data),
+  getForumPosts: (forumId: string) => collaborationAPI.getForumPosts(forumId).then(res => ({ items: res.data.posts ?? res.data ?? [] })),
+  createForumPost: (forumId: string, data: any) => collaborationAPI.createForumPost(forumId, data).then(res => res.data),
+  getStudyGroups: () => collaborationAPI.getStudyGroups().then(res => ({ items: res.data.groups ?? res.data ?? [] })),
+  createStudyGroup: (data: any) => collaborationAPI.createStudyGroup(data).then(res => res.data),
+  getTutoring: (_params?: any) => collaborationAPI.getTutoring().then(res => ({ items: res.data.sessions ?? res.data ?? [] })),
+  createTutoring: (data: any) => collaborationAPI.createTutoring(data).then(res => res.data),
   updateTutoringStatus: (_id: string, _status: any) => collaborationAPI.getTutoring().then(res => res.data),
   listUsers: () => authAPI.listUsers().then(users => ({ items: users })),
   exportUserData: (userId: string) => authAPI.exportData(userId).then(res => res.data),

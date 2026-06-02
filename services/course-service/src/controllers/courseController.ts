@@ -85,6 +85,58 @@ export class CourseController {
   }
 
   /**
+   * GET /courses/enrolled
+   * List courses a student is enrolled in
+   */
+  async listEnrolledCourses(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const studentId = req.userId;
+      if (!studentId) {
+        res.status(401).json({ error: 'unauthorized' });
+        return;
+      }
+
+      const courses = await this.service.listStudentCourses(studentId);
+
+      res.status(200).json({
+        courses: courses.map(c => ({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          status: c.status,
+          totalModules: c.totalModules,
+          createdBy: c.createdBy,
+          createdAt: c.createdAt
+        }))
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * POST /courses/:courseId/enroll
+   * Enroll a student in a course
+   */
+  async enrollStudent(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { courseId } = req.params;
+      const studentId = req.userId;
+      
+      if (!studentId) {
+        res.status(401).json({ error: 'unauthorized' });
+        return;
+      }
+
+      await this.service.enrollStudent(courseId, studentId);
+      res.status(200).json({ message: 'enrolled_successfully', courseId, studentId });
+    } catch (error: any) {
+      const statusCode = error.message === 'course_not_found' ? 404 : 500;
+      res.status(statusCode).json({ error: error.message });
+    }
+  }
+
+  /**
    * GET /courses/:courseId
    * Get course details with modules and materials
    */

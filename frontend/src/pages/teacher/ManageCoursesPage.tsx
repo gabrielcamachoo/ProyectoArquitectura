@@ -54,6 +54,7 @@ export default function ManageCoursesPage() {
             {courses.map(c => (
               <div key={c.id} style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 6 }}>
                 <strong>{c.name}</strong>
+                <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#6b7280' }}>ID: {c.id}</p>
                 <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#6b7280' }}>{c.description}</p>
               </div>
             ))}

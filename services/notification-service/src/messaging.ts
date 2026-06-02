@@ -9,7 +9,16 @@ const bindings = [
 
 export async function startNotificationConsumer(url?: string) {
   if (!url) return;
-  const conn = await amqp.connect(url);
+  const connectWithRetry = async (retryCount = 0): Promise<any> => {
+    try {
+      return await amqp.connect(url);
+    } catch (error) {
+      console.log(`[RabbitMQ] Connection failed, retrying in 5s... (${retryCount + 1})`);
+      await new Promise(res => setTimeout(res, 5000));
+      return connectWithRetry(retryCount + 1);
+    }
+  };
+  const conn = await connectWithRetry();
   const ch = await conn.createChannel();
   await ch.assertExchange('academic.events', 'topic', { durable: true });
   await ch.assertExchange('academic.events.dlq', 'topic', { durable: true });
@@ -20,7 +29,7 @@ export async function startNotificationConsumer(url?: string) {
     await ch.bindQueue(queue, 'academic.events', key);
   }
 
-  await ch.consume(queue, async (msg) => {
+  await ch.consume(queue, async (msg: any) => {
     if (!msg) return;
     try {
       const payload = JSON.parse(msg.content.toString()) as {
