@@ -2,18 +2,23 @@
   --ja-blue: #1a73e8;       /* Blue - Google Primary */
   --ja-blue-light: #4285f4; /* Lighter Google Blue */
   --ja-gold: #fbbc04;       /* Google Gold/Yellow */
-  --ja-gold-soft: #fef7e0;  /* Google Soft Yellow */
-  --bg: #f8f9fa;            /* Google Light Gray Background */
+  --bg: #f8f9fa;
   --surface: #ffffff;
-  --text: #202124;          /* Google Dark Gray */
-  --text-muted: #5f6368;    /* Google Muted Gray */
-  --border: #dadce0;        /* Google Border Color */
-  --success: #1e8e3e;       /* Google Green */
-  --warning: #f29900;       /* Google Orange */
-  --danger: #d93025;        /* Google Red */
-  --info: #1a73e8;
-  --radius: 8px;            /* Google standard corner radius */
-  --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google Card Shadow */
+  --text: #202124;
+  --text-muted: #5f6368;
+  --border: #dadce0;
+  --primary: #003b5c;
+  --primary-hover: #002d47;
+  --success: #188038;
+  --danger: #d93025;
+  --warning: #f1b434;
+  --info: #003b5c;
+  --radius: 8px;
+  --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  
+  /* Javeriana theme */
+  --ja-blue: #003b5c;
+  --ja-gold: #f1b434;
   --font: 'Google Sans', 'Roboto', 'Inter', system-ui, sans-serif;
   --font-display: 'Google Sans Display', 'Roboto', system-ui, sans-serif;
 }
@@ -64,7 +69,7 @@ h4 {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: linear-gradient(135deg, var(--ja-blue) 0%, #001a33 100%);
   position: relative;
   overflow: hidden;
   padding: 2rem;
@@ -125,7 +130,7 @@ h4 {
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-align: center;
-  background: linear-gradient(to right, #fff, #a1c4fd);
+  background: linear-gradient(to right, #fff, var(--ja-gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -179,7 +184,7 @@ h4 {
 }
 
 .auth-btn-modern {
-  background: linear-gradient(135deg, #fbbc04 0%, #f9a826 100%);
+  background: linear-gradient(135deg, var(--ja-gold) 0%, #e0a323 100%);
   color: #111;
   border: none;
   border-radius: 12px;
@@ -190,12 +195,12 @@ h4 {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 1rem;
-  box-shadow: 0 4px 15px rgba(251, 188, 4, 0.3);
+  box-shadow: 0 4px 15px rgba(241, 180, 52, 0.3);
 }
 
 .auth-btn-modern:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(251, 188, 4, 0.5);
+  box-shadow: 0 6px 20px rgba(241, 180, 52, 0.5);
   filter: brightness(1.05);
 }
 
@@ -205,7 +210,7 @@ h4 {
 }
 
 .auth-link-modern {
-  color: #fbbc04;
+  color: var(--ja-gold);
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s;

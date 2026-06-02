@@ -64,6 +64,13 @@ export class AssessmentRepository {
     return this.inMemoryEvaluations.get(id) || null;
   }
 
+  async findAllEvaluations(): Promise<EvaluationDTO[]> {
+    if (this.usePostgres) {
+      return this.typeormRepo.findAllEvaluations();
+    }
+    return Array.from(this.inMemoryEvaluations.values()).filter(e => e.status === 'published');
+  }
+
   async listEvaluationsByCourse(courseId: string, filters?: { status?: string }): Promise<EvaluationDTO[]> {
     if (this.usePostgres) {
       return this.typeormRepo.listEvaluationsByCourse(courseId, filters);

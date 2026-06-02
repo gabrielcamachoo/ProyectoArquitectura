@@ -89,6 +89,16 @@ async function seed() {
   
   // 3. Create Courses
   console.log('\n--- Creando Cursos de Sistemas ---');
+  let courseId;
+  const existingCourses = await get('/courses', profArq.token);
+  const existingCourse = existingCourses?.courses?.find(c => c.name === 'Arquitectura de Software Avanzada');
+  
+  if (existingCourse) {
+    console.log('El curso ya existe. Saltando inicialización para evitar duplicados.');
+    console.log('\n✅ Seeder completado con éxito! (Datos ya existían)');
+    return;
+  }
+  
   const courseRes = await post('/courses', {
     name: 'Arquitectura de Software Avanzada',
     description: 'Curso fundamental de sistemas distribuídos y microservicios.'
@@ -98,7 +108,7 @@ async function seed() {
     console.error('Falló creación de curso.');
     return;
   }
-  const courseId = courseRes.id || courseRes.course?.id;
+  courseId = courseRes.id || courseRes.course?.id;
 
   // 4. Enroll Students
   console.log(`\n--- Matriculando Estudiantes en Curso ${courseId} ---`);

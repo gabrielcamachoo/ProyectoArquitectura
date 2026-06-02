@@ -40,7 +40,10 @@ export default function RecommendationsPage() {
     setLoading(true);
     adaptiveAPI.getRecommendations(user.id)
       .then(data => {
-        setRecs(data);
+        const items = data.recommendations ?? data ?? [];
+        const validRecs = items.map((r: any) => ({ ...r, createdAt: r.createdAt || new Date().toISOString() }));
+        const unique = Array.from(new Map(validRecs.map((r: any) => [r.type + r.courseId, r])).values()) as Recommendation[];
+        setRecs(unique);
         setLastUpdated(new Date());
       })
       .catch(() => setError('No se pudieron cargar las recomendaciones'))

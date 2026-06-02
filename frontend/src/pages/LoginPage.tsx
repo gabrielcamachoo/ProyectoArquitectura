@@ -27,7 +27,7 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-card-modern">
-        <h1 className="auth-title">Google-like Platform</h1>
+        <h1 className="auth-title">Pontificia Universidad Javeriana</h1>
         <p className="auth-subtitle">Inicia sesión con tu cuenta institucional</p>
         
         <form onSubmit={handleSubmit}>

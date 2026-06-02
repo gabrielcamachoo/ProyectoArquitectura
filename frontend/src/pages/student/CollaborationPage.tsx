@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { collaborationAPI } from '../../services/api';
 
 export default function CollaborationPage() {
-  const [forums] = useState<any[]>([]);
+  const [forums, setForums] = useState<any[]>([]);
+
+  useEffect(() => {
+    collaborationAPI.getForums()
+      .then(res => setForums(res.data.items ?? res.data ?? []))
+      .catch(console.error);
+  }, []);
 
   return (
     <div style={{ padding: 40, maxWidth: 800, fontFamily: 'sans-serif' }}>
@@ -19,7 +26,8 @@ export default function CollaborationPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {forums.map(f => (
             <div key={f.id} style={{ padding: 16, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-              <h4>{f.title}</h4>
+              <h4 style={{ margin: '0 0 8px 0' }}>{f.title}</h4>
+              <p style={{ margin: 0, color: '#4b5563', fontSize: 14 }}>{f.description}</p>
             </div>
           ))}
         </div>

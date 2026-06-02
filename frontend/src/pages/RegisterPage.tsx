@@ -32,7 +32,7 @@ export default function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="auth-card-modern" style={{ maxWidth: '540px' }}>
-        <h1 className="auth-title">Google-like Platform</h1>
+        <h1 className="auth-title">Pontificia Universidad Javeriana</h1>
         <p className="auth-subtitle">Crea tu cuenta para comenzar a aprender</p>
         
         <form onSubmit={handleSubmit}>

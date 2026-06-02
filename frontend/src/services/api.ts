@@ -124,7 +124,7 @@ export const progressAPI = {
 export const notificationsAPI = {
   getStudentNotifications: (studentId: string) =>
     apiInstance.get(`/notifications/student/${studentId}`)
-      .then(res => res.data.notifications ?? res.data ?? []),
+      .then(res => res.data.items ?? res.data.notifications ?? (Array.isArray(res.data) ? res.data : [])),
   markRead: (notificationId: string) =>
     apiInstance.put(`/notifications/${notificationId}/read`),
 };
