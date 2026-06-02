@@ -17,12 +17,18 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!user?.id) return;
     notificationsAPI.getStudentNotifications(user.id)
-      .then(setNotifs)
-      .catch(console.error)
+      .then(data => {
+        setNotifs(Array.isArray(data) ? data : (data?.items || data?.notifications || []));
+      })
+      .catch((err) => {
+        console.error(err);
+        setNotifs([]);
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
-  const unread = notifs.filter(n => !n.read).length;
+  const validNotifs = Array.isArray(notifs) ? notifs : [];
+  const unread = validNotifs.filter(n => !n.read).length;
 
   return (
     <div style={{ padding:40, maxWidth:700, fontFamily: 'sans-serif' }}>
@@ -34,10 +40,10 @@ export default function NotificationsPage() {
         )}
       </h1>
       {loading && <p>Cargando notificaciones...</p>}
-      {!loading && notifs.length === 0 && (
+      {!loading && validNotifs.length === 0 && (
         <p style={{ color:'#6b7280' }}>No tienes notificaciones.</p>
       )}
-      {notifs.map(n => (
+      {validNotifs.map(n => (
         <div key={n.id} style={{ padding:16, marginBottom:12,
           backgroundColor: n.read ? '#f9fafb' : '#eff6ff',
           border: `1px solid ${n.read ? '#e5e7eb' : '#bfdbfe'}`,

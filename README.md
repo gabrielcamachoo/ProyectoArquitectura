@@ -1,103 +1,61 @@
-# Plataforma de Aprendizaje Adaptativo y Colaborativo
+# Plataforma de Aprendizaje Adaptativo - Proyecto de Arquitectura
 
-Implementación base del proyecto AS2026-10 (Grupo 2) con arquitectura de microservicios en Node.js + TypeScript, frontend React, Kong API Gateway, PostgreSQL, Redis y RabbitMQ.
+Bienvenido a la plataforma de aprendizaje adaptativo de la Pontificia Universidad Javeriana. Este proyecto implementa una arquitectura basada en microservicios, donde interactúan múltiples componentes, incluyendo servicios en Node.js, .NET y JEE.
 
-## Estructura
+## 🚀 Cómo iniciar el proyecto desde cero
 
-- `services/` 8 microservicios de dominio
-- `frontend/` SPA React 18 + TypeScript
-- `migrations/` esquema SQL (expand-contract)
-- `kong/kong.yml` configuración declarativa de gateway
-- `terraform/` esqueleto de infraestructura AWS
-- `docker-compose.yml` entorno local integral
+Si necesitas iniciar todo el entorno para tu presentación o desarrollo, cuentas con un script preparado para reiniciar la base de datos, levantar todos los servicios y cargar los datos iniciales necesarios para probar el flujo.
 
-## Variables de entorno
+### Paso a paso:
+1. Abre tu terminal de **PowerShell** y ubícate en la raíz del proyecto (`c:\Users\OsoGa\Uni\ProyectoArquitectura`).
+2. Ejecuta el script de reinicio y carga de datos:
+   ```powershell
+   .\reset_and_seed.ps1
+   ```
+   *(Este script detendrá servicios antiguos, limpiará la BD, encenderá los contenedores Docker y poblará la base de datos)*.
+3. El frontend de la aplicación estará disponible en: [http://localhost:5173](http://localhost:5173).
 
-1. Copie `.env.example` a `.env`
-2. Genere claves JWT RS256 y Kong (producción):
+---
 
-```bash
-npm run kong:setup
-```
+## 👩‍💻👨‍🏫 Credenciales de Acceso
 
-Esto crea `kong/jwt-public.pem`, `kong/jwt-private.pem` (gitignored) y actualiza `.env` + `kong/kong.yml` con validación JWT obligatoria en el gateway.
+- **👩‍💻 Estudiante (Ana)**
+  - **Email:** `ana.sistemas@puj.edu.co`
+  - **Contraseña:** `Password123!`
+- **👨‍🏫 Profesor (Carlos)**
+  - **Email:** `carlos.arq@puj.edu.co`
+  - **Contraseña:** `Password123!`
 
-## Levantamiento local
+---
 
-1. Copie `.env.example` a `.env` (si aún no existe).
-2. Levante el stack (en Windows, si falla el build paralelo, use `COMPOSE_PARALLEL_LIMIT=2`):
+## 🎬 Flujo sugerido para la Presentación
 
-```powershell
-docker compose build
-docker compose up -d
-```
+Te recomendamos seguir esta historia o "flujo feliz" para demostrar todas las capacidades de la plataforma de manera fluida y conectada:
 
-3. Verifique contenedores: `docker compose ps`
+### Parte 1: La Visión del Docente
+1. Ingresa a la plataforma usando las credenciales del profesor **Carlos**.
+2. **Dashboard**: Muestra el panel docente, evidenciando el diseño y la información general.
+3. **Cursos y Evaluaciones**: Navega a *Mis Cursos* para demostrar que el curso de Arquitectura existe. Luego entra a *Evaluaciones* y resalta que se pueden programar evaluaciones.
+4. **Foros / Tutorías**: Muestra cómo el profesor tiene acceso al módulo de colaboración y puede ver o agendar tutorías.
 
-Servicios principales:
-- Kong Proxy (API Gateway): `http://localhost:8000`
-- Kong Admin: `http://localhost:8001`
-- Frontend: `http://localhost:5173`
-- Auth directo (sin gateway): `http://localhost:3000/health`
-- RabbitMQ UI: `http://localhost:15672` (guest/guest)
-- .NET demo: `http://localhost:5000/health`
-- JEE demo: `http://localhost:8081/health`
+### Parte 2: La Experiencia del Estudiante
+1. Cierra sesión y entra con las credenciales de la estudiante **Ana**.
+2. **Inicio y Cursos**: Ve a la sección de *Cursos*, explicando que ya estás inscrito en "Arquitectura de Software".
+3. **Evaluación Adaptativa (Clave)**:
+   - Dirígete a la pestaña de **Evaluaciones** (donde aparecerán las disponibles).
+   - Simula que iniciarás/enviarás un intento o resalta que al enviarlo se notifica.
+4. **Motor de Recomendación**: 
+   - Ve a la pestaña de **Recomendaciones**.
+   - Explica cómo el *motor adaptativo* analizó los resultados de la evaluación y determinó sugerir material específico para el perfil de Ana.
+5. **Colaboración**:
+   - Entra a la sección **Colaboración** (Foros) para demostrar que los estudiantes pueden crear grupos de estudio y postear en los foros.
+   - Envía un mensaje rápido en el foro.
+6. **Notificaciones (Event-Driven)**:
+   - Finalmente, ve a la pestaña de **Notificaciones** (la campanita en la barra).
+   - ¡Demuestra que están llegando mensajes automáticos indicando nuevas evaluaciones, mensajes de foro o inscripciones! Esto muestra integración asíncrona entre microservicios.
 
-## Uso de la plataforma (frontend)
-
-1. Abra **http://localhost:5173**
-2. Regístrese como **estudiante**, **docente** o **administrador**
-3. Explore el panel según su rol:
-   - **Estudiante:** cursos, evaluaciones, recomendaciones adaptativas, foros, notificaciones
-   - **Docente:** gestión de cursos, calificación (activa el motor adaptativo vía RabbitMQ), analítica
-   - **Administrador:** vista global y analítica
-
-### Flujo demo (estudiante → docente)
-
-1. Registre un **estudiante** y otro usuario **docente**
-2. Como estudiante: **Evaluaciones** → *Iniciar intento* → *Enviar respuestas*
-3. Como docente: **Evaluaciones** → calificar con una nota (ej. 45, 70 u 85)
-4. Como estudiante: **Recomendaciones** (refuerzo / profundización / complementario según nota) y **Notificaciones**
-
-Puertos de microservicios (acceso directo en desarrollo): 3000–3007.
-
-### Funcionalidades adicionales
-
-- **Tutorías** (`/app/tutorias`): agendar, listar y completar/cancelar sesiones entre pares
-- **Ley 1581** (`/app/privacidad`): exportación de datos personales; panel admin con listado, exportación y supresión
-- **Kong JWT (producción)**: rutas públicas solo `POST /auth/register`, `/auth/login`, `/auth/refresh`; el resto exige `Authorization: Bearer` con RS256 (`iss: auth-jwt-key`)
-
-Sin claves JWT, Kong arranca en modo `kong.dev.yml` (sin validación en gateway).
-
-## Servicios locales adicionales
-
-### .NET local
-
-- `cd services/dotnet-service`
-- `dotnet run --project DotnetService.csproj`
-
-Servicio .NET disponible en `http://localhost:5000`
-
-### JEE local
-
-- `cd services/jee-service`
-- `mvn package`
-- `java -jar target/jee-service-1.0.0.jar`
-
-Servicio JEE disponible en `http://localhost:8081`
-
-## Ejecución de pruebas
-
-En la raíz del repositorio:
-
-```bash
-npm install
-npm run test
-```
-
-## Seguridad implementada
-
-- JWT RS256 (1h), refresh token (TTL 7 días) y blacklist en Redis
-- Middleware de RBAC en auth-service
-- Logging estructurado JSON con correlation ID y sin PII en logs
-- Esquema preparado para cifrado de PII en PostgreSQL usando `pgcrypto`
+### Parte 3: El Backend Híbrido (Opcional si preguntan)
+Si el profesor te pregunta por los servicios en otras tecnologías, puedes mostrarle directamente el código en estas carpetas:
+* `services/jee-service` (Java)
+* `services/dotnet-service` (C# .NET)
+* `services/assessment-service`, etc. (Node)
