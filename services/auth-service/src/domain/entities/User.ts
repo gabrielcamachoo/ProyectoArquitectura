@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDa
 import { RoleEntity } from './Role';
 
 @Entity('users')
-@Index(['institutionalEmail'], { unique: true })
+@Index('idx_users_institutional_email', ['institutionalEmail'], { unique: true })
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -33,6 +33,7 @@ export class UserEntity {
     default: false
   })
   consentAccepted: boolean;
+
   @Column({ type: 'text', name: 'password_hash' })
   passwordHash: string;
 
@@ -41,11 +42,6 @@ export class UserEntity {
 
   @Column({ type: 'varchar', length: 30, default: 'active' })
   status: 'active' | 'inactive';
-
-
-
-  @Column({ type: 'timestamp', nullable: true, name: 'consent_accepted_at' })
-  consentAcceptedAt: Date | null;
 
   @Column('uuid', { nullable: true, name: 'created_by' })
   createdBy: string | null;

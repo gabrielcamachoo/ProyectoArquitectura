@@ -51,9 +51,9 @@ export interface GradeDTO {
 }
 
 export class TypeORMAssessmentRepository {
-  private evaluationRepo = AppDataSource.getRepository(EvaluationEntity);
-  private attemptRepo = AppDataSource.getRepository(Attempt);
-  private gradeRepo = AppDataSource.getRepository(GradeEntity);
+  private get evaluationRepo() { return AppDataSource.getRepository(EvaluationEntity); }
+  private get attemptRepo() { return AppDataSource.getRepository(Attempt); }
+  private get gradeRepo() { return AppDataSource.getRepository(GradeEntity); }
 
   // ============ EVALUATION METHODS ============
   async createEvaluation(input: {

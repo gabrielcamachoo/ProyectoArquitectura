@@ -37,10 +37,10 @@ export interface TutoringDTO {
 }
 
 export class TypeORMCollaborationRepository {
-  private forumRepo = AppDataSource.getRepository(ForumEntity);
-  private postRepo = AppDataSource.getRepository(ForumPost);
-  private groupRepo = AppDataSource.getRepository(StudyGroup);
-  private tutoringRepo = AppDataSource.getRepository(TutoringSession);
+  private get forumRepo() { return AppDataSource.getRepository(ForumEntity); }
+  private get postRepo() { return AppDataSource.getRepository(ForumPost); }
+  private get groupRepo() { return AppDataSource.getRepository(StudyGroup); }
+  private get tutoringRepo() { return AppDataSource.getRepository(TutoringSession); }
 
   // Forums
   async getForums(): Promise<Forum[]> {

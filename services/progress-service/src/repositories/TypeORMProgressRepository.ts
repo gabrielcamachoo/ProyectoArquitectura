@@ -16,7 +16,7 @@ export interface ProgressRecord {
 }
 
 export class TypeORMProgressRepository {
-  private progressRepo = AppDataSource.getRepository(Progress);
+  private get progressRepo() { return AppDataSource.getRepository(Progress); }
 
   async upsertProgress(data: {
     studentId: string;

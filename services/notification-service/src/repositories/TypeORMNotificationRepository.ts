@@ -12,7 +12,7 @@ export interface NotificationDTO {
 }
 
 export class TypeORMNotificationRepository {
-  private notificationRepo = AppDataSource.getRepository(Notification);
+  private get notificationRepo() { return AppDataSource.getRepository(Notification); }
 
   async createNotification(data: {
     userId: string;

@@ -41,10 +41,10 @@ export interface MaterialDTO {
 }
 
 export class TypeORMCourseRepository {
-  private courseRepo = AppDataSource.getRepository(CourseEntity);
-  private moduleRepo = AppDataSource.getRepository(Module);
-  private materialRepo = AppDataSource.getRepository(Material);
-  private enrollmentRepo = AppDataSource.getRepository(EnrollmentEntity);
+  private get courseRepo() { return AppDataSource.getRepository(CourseEntity); }
+  private get moduleRepo() { return AppDataSource.getRepository(Module); }
+  private get materialRepo() { return AppDataSource.getRepository(Material); }
+  private get enrollmentRepo() { return AppDataSource.getRepository(EnrollmentEntity); }
 
   // ============ COURSE METHODS ============
   async createCourse(input: CreateCourseInput): Promise<Course> {

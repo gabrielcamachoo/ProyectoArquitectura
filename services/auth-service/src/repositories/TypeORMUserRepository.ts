@@ -31,7 +31,6 @@ export class TypeORMUserRepository {
       roleId,
       status: user.status,
       consentAccepted: true,
-      consentAcceptedAt: new Date(),
       createdAt: new Date(user.createdAt),
       updatedAt: new Date(user.updatedAt)
     });
