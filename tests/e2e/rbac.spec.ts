@@ -5,6 +5,7 @@ const API_BASE = 'http://localhost:3000';
 let studentToken: string;
 let teacherToken: string;
 let adminToken: string;
+let courseId: string;
 
 test.describe('RBAC Enforcement', () => {
   test.beforeAll(async ({ request }) => {
@@ -67,6 +68,17 @@ test.describe('RBAC Enforcement', () => {
     });
     const { accessToken: aToken } = await adminLogin.json();
     adminToken = aToken;
+
+    // Create real course
+    const courseRes = await request.post('http://localhost:3001/courses', {
+      headers: { Authorization: `Bearer ${teacherToken}` },
+      data: {
+        name: 'RBAC Course',
+        description: 'Course for RBAC tests',
+      },
+    });
+    const course = await courseRes.json();
+    courseId = course.id;
   });
 
   test('Student cannot create courses', async ({ request }) => {
@@ -101,7 +113,7 @@ test.describe('RBAC Enforcement', () => {
     const response = await request.post('http://localhost:3002/evaluations', {
       headers: { Authorization: `Bearer ${studentToken}` },
       data: {
-        courseId: 'course-001',
+        courseId,
         title: 'Student Quiz',
         type: 'quiz',
         weight: 0.2,
@@ -115,7 +127,7 @@ test.describe('RBAC Enforcement', () => {
     const response = await request.post('http://localhost:3002/evaluations', {
       headers: { Authorization: `Bearer ${teacherToken}` },
       data: {
-        courseId: `course-${Date.now()}`,
+        courseId,
         title: 'Teacher Quiz',
         type: 'quiz',
         weight: 0.2,
@@ -126,7 +138,7 @@ test.describe('RBAC Enforcement', () => {
   });
 
   test('Admin can view analytics', async ({ request }) => {
-    const response = await request.get('http://localhost:3006/analytics/course/course-001', {
+    const response = await request.get(`http://localhost:3006/analytics/course/${courseId}`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     expect([200, 404, 403]).toContain(response.status());

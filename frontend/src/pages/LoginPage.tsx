@@ -25,45 +25,40 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="card" style={{ maxWidth: 450, width: '100%', padding: '40px 32px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', background: 'var(--surface)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ color: 'var(--info)', fontSize: '24px', fontWeight: '500', marginBottom: '8px' }}>Google-like Platform</h1>
-          <h2 style={{ fontSize: '28px', fontWeight: '400', color: 'var(--text)' }}>Iniciar sesión</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginTop: '8px' }}>Ingresa con tu cuenta institucional</p>
-        </div>
+    <div className="auth-page">
+      <div className="auth-card-modern">
+        <h1 className="auth-title">Google-like Platform</h1>
+        <p className="auth-subtitle">Inicia sesión con tu cuenta institucional</p>
         
-        <form onSubmit={handleSubmit} className="form-stack">
-          <div className="field">
-            <label className="field-label">Correo institucional</label>
+        <form onSubmit={handleSubmit}>
+          <div className="auth-field-modern">
+            <label className="auth-label-modern">Correo institucional</label>
             <input type="email" value={email}
               onChange={e => setEmail(e.target.value)} required
-              className="field-input" placeholder="tu.correo@institucion.edu" />
+              className="auth-input-modern" placeholder="tu.correo@institucion.edu" />
           </div>
           
-          <div className="field">
-            <label className="field-label">Contraseña</label>
+          <div className="auth-field-modern">
+            <label className="auth-label-modern">Contraseña</label>
             <input type="password" value={password}
               onChange={e => setPassword(e.target.value)} required
-              className="field-input" placeholder="••••••••" />
+              className="auth-input-modern" placeholder="••••••••" />
           </div>
           
           {error && (
-            <div className="form-error" style={{ padding: '10px 12px', background: '#fce8e6', color: 'var(--danger)', borderRadius: '4px' }}>
+            <div style={{ background: 'rgba(255, 0, 0, 0.2)', color: '#ffb3b3', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '1rem', border: '1px solid rgba(255,0,0,0.3)' }}>
               {error}
             </div>
           )}
           
-          <div style={{ marginTop: '16px' }}>
-            <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg" style={{ background: 'var(--info)', color: 'white', borderRadius: '4px', fontWeight: '500' }}>
-              {loading ? 'Iniciando sesión...' : 'Siguiente'}
-            </button>
-          </div>
+          <button type="submit" disabled={loading} className="auth-btn-modern">
+            {loading ? 'Verificando...' : 'Entrar al Ecosistema'}
+          </button>
         </form>
         
-        <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--text-muted)' }}>
-          ¿No tienes cuenta? <Link to="/register" style={{ color: 'var(--info)', fontWeight: '500' }}>Crear cuenta</Link>
-        </p>
+        <div className="auth-footer">
+          ¿No tienes cuenta? <Link to="/register" className="auth-link-modern">Crear cuenta</Link>
+        </div>
       </div>
     </div>
   );

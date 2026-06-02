@@ -54,8 +54,8 @@ test.describe('Course Management', () => {
   test('Get courses list', async ({ request }) => {
     const response = await request.get(`${API_BASE}/courses`);
     expect(response.status()).toBe(200);
-    const courses = await response.json();
-    expect(Array.isArray(courses)).toBeTruthy();
+    const data = await response.json();
+    expect(Array.isArray(data.courses)).toBeTruthy();
   });
 
   test('Get course details', async ({ request }) => {
@@ -82,15 +82,15 @@ test.describe('Course Management', () => {
   test('Get course modules', async ({ request }) => {
     const response = await request.get(`${API_BASE}/courses/${courseId}/modules`);
     expect(response.status()).toBe(200);
-    const modules = await response.json();
-    expect(Array.isArray(modules)).toBeTruthy();
+    const data = await response.json();
+    expect(Array.isArray(data.modules)).toBeTruthy();
   });
 
   test('Add material to module', async ({ request }) => {
     // First get a module
     const modulesResponse = await request.get(`${API_BASE}/courses/${courseId}/modules`);
-    const modules = await modulesResponse.json();
-    const moduleId = modules[0]?.id;
+    const data = await modulesResponse.json();
+    const moduleId = data.modules[0]?.id;
 
     if (!moduleId) {
       test.skip();
@@ -114,9 +114,8 @@ test.describe('Course Management', () => {
   });
 
   test('Publish course', async ({ request }) => {
-    const response = await request.patch(`${API_BASE}/courses/${courseId}`, {
+    const response = await request.post(`${API_BASE}/courses/${courseId}/publish`, {
       headers: { Authorization: `Bearer ${teacherToken}` },
-      data: { status: 'published' },
     });
     expect(response.status()).toBe(200);
     const updated = await response.json();
@@ -148,11 +147,11 @@ test.describe('Course Management', () => {
     await page.fill('input[type="email"]', studentEmail);
     await page.fill('input[type="password"]', 'StudentPass123!');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/app/**');
 
     // Navigate to courses
-    await page.click('text=Courses');
+    await page.click('text=Cursos');
     await page.waitForURL('**/courses');
-    await expect(page.locator('text=Courses')).toBeVisible();
+    await expect(page.locator('text=Cursos').first()).toBeVisible();
   });
 });

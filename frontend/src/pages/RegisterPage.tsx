@@ -30,63 +30,63 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="card" style={{ maxWidth: 450, width: '100%', padding: '40px 32px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', background: 'var(--surface)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ color: 'var(--info)', fontSize: '24px', fontWeight: '500', marginBottom: '8px' }}>Google-like Platform</h1>
-          <h2 style={{ fontSize: '28px', fontWeight: '400', color: 'var(--text)' }}>Crear Cuenta</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginTop: '8px' }}>Únete para comenzar a aprender</p>
-        </div>
-        <form onSubmit={handleSubmit} className="form-stack">
-          {(['name','email','password'] as const).map(field => (
-            <div key={field} className="field">
-              <label className="field-label">
-                {field === 'name' ? 'Nombre completo' :
-                 field === 'email' ? 'Correo institucional' : 'Contraseña'}
-              </label>
+    <div className="auth-page">
+      <div className="auth-card-modern" style={{ maxWidth: '540px' }}>
+        <h1 className="auth-title">Google-like Platform</h1>
+        <p className="auth-subtitle">Crea tu cuenta para comenzar a aprender</p>
+        
+        <form onSubmit={handleSubmit}>
+          {([
+            { key: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Ej. Juan Pérez' },
+            { key: 'email', label: 'Correo institucional', type: 'email', placeholder: 'juan@institucion.edu' },
+            { key: 'password', label: 'Contraseña', type: 'password', placeholder: '••••••••' }
+          ] as const).map(field => (
+            <div key={field.key} className="auth-field-modern">
+              <label className="auth-label-modern">{field.label}</label>
               <input
-                type={field === 'password' ? 'password' :
-                      field === 'email' ? 'email' : 'text'}
-                value={form[field]}
-                onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                type={field.type}
+                value={form[field.key as keyof typeof form] as string}
+                onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                 required
-                className="field-input" placeholder={field === 'name' ? 'Ej. Juan Pérez' : field === 'email' ? 'juan@institucion.edu' : '••••••••'} />
+                className="auth-input-modern" placeholder={field.placeholder} />
             </div>
           ))}
-          <div className="field">
-            <label className="field-label">Rol</label>
+          
+          <div className="auth-field-modern">
+            <label className="auth-label-modern">Rol</label>
             <select value={form.role}
               onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-              className="field-input">
+              className="auth-input-modern" style={{ cursor: 'pointer' }}>
               <option value="student">Estudiante</option>
               <option value="teacher">Profesor</option>
             </select>
           </div>
-          <div style={{ display:'flex', gap:8, alignItems:'flex-start', background: 'var(--bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+          
+          <div style={{ display:'flex', gap:'12px', alignItems:'flex-start', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '1.5rem' }}>
             <input type="checkbox" id="consent"
               checked={form.consentAccepted}
-              onChange={e => setForm(f =>
-                ({ ...f, consentAccepted: e.target.checked }))}
-              style={{ marginTop: 3, cursor: 'pointer' }} />
-            <label htmlFor="consent" style={{ fontSize:13, color:'var(--text-muted)', cursor: 'pointer', lineHeight: '1.4' }}>
+              onChange={e => setForm(f => ({ ...f, consentAccepted: e.target.checked }))}
+              style={{ marginTop: '4px', cursor: 'pointer', accentColor: '#fbbc04', width: '18px', height: '18px' }} />
+            <label htmlFor="consent" style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', lineHeight: '1.5' }}>
               Acepto el tratamiento de mis datos personales conforme a la
-              <strong> Ley 1581 de 2012</strong> (Protección de Datos Personales)
+              <strong style={{ color: '#fff' }}> Ley 1581 de 2012</strong> (Protección de Datos Personales)
             </label>
           </div>
+          
           {error && (
-            <div className="form-error" style={{ padding: '10px 12px', background: '#fce8e6', color: 'var(--danger)', borderRadius: '4px' }}>
+            <div style={{ background: 'rgba(255, 0, 0, 0.2)', color: '#ffb3b3', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', marginBottom: '1rem', border: '1px solid rgba(255,0,0,0.3)' }}>
               {error}
             </div>
           )}
-          <div style={{ marginTop: '16px' }}>
-            <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg" style={{ background: 'var(--info)', color: 'white', borderRadius: '4px', fontWeight: '500' }}>
-              {loading ? 'Creando cuenta...' : 'Crear cuenta'}
-            </button>
-          </div>
+          
+          <button type="submit" disabled={loading} className="auth-btn-modern">
+            {loading ? 'Creando cuenta...' : 'Unirse a la Plataforma'}
+          </button>
         </form>
-        <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--text-muted)' }}>
-          ¿Ya tienes cuenta? <Link to="/login" style={{ color: 'var(--info)', fontWeight: '500' }}>Inicia sesión</Link>
-        </p>
+        
+        <div className="auth-footer">
+          ¿Ya tienes cuenta? <Link to="/login" className="auth-link-modern">Inicia sesión</Link>
+        </div>
       </div>
     </div>
   );

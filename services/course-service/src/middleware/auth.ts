@@ -44,7 +44,8 @@ export const optional = async (req: AuthRequest, res: Response, next: NextFuncti
     req.role = payload.role;
     req.accessToken = token;
   } catch (error) {
-    // If token is invalid, just continue without auth
+    // If token is present but invalid, return 401
+    return res.status(401).json({ error: 'invalid_token' });
   }
   next();
 };

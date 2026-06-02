@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const ASSESSMENT_API = 'http://localhost:3002';
 const AUTH_API = 'http://localhost:3000';
+const COURSE_API = 'http://localhost:3001';
 
 let studentToken: string;
 let studentId: string;
@@ -25,7 +26,6 @@ test.describe('Assessment & Grading Flow', () => {
     });
     const student = await studentReg.json();
     studentId = student.id;
-    courseId = student.courseId || 'course-001'; // Mock course
 
     const studentLogin = await request.post(`${AUTH_API}/auth/login`, {
       data: {
@@ -57,6 +57,17 @@ test.describe('Assessment & Grading Flow', () => {
     });
     const { accessToken: tToken } = await teacherLogin.json();
     teacherToken = tToken;
+
+    // Create a valid course
+    const courseRes = await request.post(`${COURSE_API}/courses`, {
+      headers: { Authorization: `Bearer ${teacherToken}` },
+      data: {
+        name: 'Assessment Test Course',
+        description: 'Mock course for assessment E2E',
+      },
+    });
+    const course = await courseRes.json();
+    courseId = course.id;
   });
 
   test('Create evaluation', async ({ request }) => {
@@ -81,8 +92,8 @@ test.describe('Assessment & Grading Flow', () => {
       headers: { Authorization: `Bearer ${studentToken}` },
     });
     expect(response.status()).toBe(200);
-    const evaluations = await response.json();
-    expect(Array.isArray(evaluations)).toBeTruthy();
+    const data = await response.json();
+    expect(Array.isArray(data.evaluations)).toBeTruthy();
   });
 
   test('Student starts attempt', async ({ request }) => {
@@ -96,11 +107,17 @@ test.describe('Assessment & Grading Flow', () => {
     expect(response.status()).toBe(201);
     const attempt = await response.json();
     attemptId = attempt.id;
-    expect(attempt.status).toBe('in_progress');
+    
+    // Start the attempt
+    const startRes = await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/start`, {
+      headers: { Authorization: `Bearer ${studentToken}` }
+    });
+    const started = await startRes.json();
+    expect(started.status).toBe('in_progress');
   });
 
   test('Student submits attempt', async ({ request }) => {
-    const response = await request.put(`${ASSESSMENT_API}/attempts/${attemptId}/submit`, {
+    const response = await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/submit`, {
       headers: { Authorization: `Bearer ${studentToken}` },
       data: {
         answers: [
@@ -117,7 +134,7 @@ test.describe('Assessment & Grading Flow', () => {
   test('Teacher grades attempt (returns <2s)', async ({ request }) => {
     const startTime = Date.now();
 
-    const response = await request.put(`${ASSESSMENT_API}/attempts/${attemptId}/grade`, {
+    const response = await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/grade`, {
       headers: { Authorization: `Bearer ${teacherToken}` },
       data: { score: 85 },
     });
@@ -127,8 +144,8 @@ test.describe('Assessment & Grading Flow', () => {
 
     expect(response.status()).toBe(200);
     const graded = await response.json();
-    expect(graded.status).toBe('graded');
-    expect(graded.score).toBe(85);
+    expect(graded.attempt.status).toBe('graded');
+    expect(graded.attempt.score).toBe(85);
 
     // Critical requirement: Must return within 2 seconds
     expect(elapsedTime).toBeLessThan(2000);
@@ -137,7 +154,7 @@ test.describe('Assessment & Grading Flow', () => {
 
   test('Cannot access others\' attempts (RBAC)', async ({ request }) => {
     // Student tries to grade another student's attempt
-    const response = await request.put(`${ASSESSMENT_API}/attempts/${attemptId}/grade`, {
+    const response = await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/grade`, {
       headers: { Authorization: `Bearer ${studentToken}` },
       data: { score: 100 },
     });
@@ -167,11 +184,18 @@ test.describe('Assessment & Grading Flow', () => {
       }
     );
     const newAttemptId = (await attemptRes.json()).id;
-    const startedAttempt = await attemptRes.json();
+    const createdAttempt = await attemptRes.json();
+    expect(createdAttempt.status).toBe('created');
+    
+    // Start attempt properly
+    const startRes = await request.post(`${ASSESSMENT_API}/attempts/${newAttemptId}/start`, {
+      headers: { Authorization: `Bearer ${studentToken}` }
+    });
+    const startedAttempt = await startRes.json();
     expect(startedAttempt.status).toBe('in_progress');
 
     // Submit
-    const submitRes = await request.put(`${ASSESSMENT_API}/attempts/${newAttemptId}/submit`, {
+    const submitRes = await request.post(`${ASSESSMENT_API}/attempts/${newAttemptId}/submit`, {
       headers: { Authorization: `Bearer ${studentToken}` },
       data: { answers: [] },
     });
@@ -179,11 +203,11 @@ test.describe('Assessment & Grading Flow', () => {
     expect(submittedAttempt.status).toBe('submitted');
 
     // Grade
-    const gradeRes = await request.put(`${ASSESSMENT_API}/attempts/${newAttemptId}/grade`, {
+    const gradeRes = await request.post(`${ASSESSMENT_API}/attempts/${newAttemptId}/grade`, {
       headers: { Authorization: `Bearer ${teacherToken}` },
       data: { score: 75 },
     });
     const gradedAttempt = await gradeRes.json();
-    expect(gradedAttempt.status).toBe('graded');
+    expect(gradedAttempt.attempt.status).toBe('graded');
   });
 });

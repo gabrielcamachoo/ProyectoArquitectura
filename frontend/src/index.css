@@ -58,55 +58,169 @@ h4 {
   margin: 0 0 0.5rem;
 }
 
-/* Auth */
+/* Auth Modern Glassmorphism */
 .auth-page {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
 }
 
-@media (max-width: 900px) {
-  .auth-page {
-    grid-template-columns: 1fr;
-  }
-  .auth-hero {
-    padding: 2rem !important;
-  }
+/* Background animated shapes */
+.auth-page::before, .auth-page::after {
+  content: '';
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  animation: floatShape 15s infinite linear;
+  z-index: 0;
+}
+.auth-page::before {
+  top: -20%;
+  left: -10%;
+}
+.auth-page::after {
+  bottom: -20%;
+  right: -10%;
+  animation-duration: 20s;
+  animation-direction: reverse;
 }
 
-.auth-hero {
-  background: linear-gradient(145deg, var(--ja-blue) 0%, #001a33 100%);
-  color: #fff;
+@keyframes floatShape {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, -50px) rotate(120deg); }
+  66% { transform: translate(-20px, 20px) rotate(240deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+.auth-card-modern {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   padding: 3rem;
+  max-width: 480px;
+  width: 100%;
+  color: #fff;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  background: linear-gradient(to right, #fff, #a1c4fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.auth-subtitle {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.auth-field-modern {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.auth-hero h2 {
-  font-size: 2rem;
+.auth-label-modern {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-input-modern {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.auth-input-modern::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-input-modern:focus {
+  outline: none;
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.auth-input-modern option {
+  background: #1e3c72;
   color: #fff;
 }
 
-.auth-tag {
-  color: var(--ja-gold);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.75rem;
-}
-
-.auth-features {
-  margin: 1.5rem 0 0;
-  padding-left: 1.25rem;
-  opacity: 0.9;
-}
-
-.auth-page .card {
-  margin: auto;
-  max-width: 420px;
+.auth-btn-modern {
+  background: linear-gradient(135deg, #fbbc04 0%, #f9a826 100%);
+  color: #111;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
   width: 100%;
-  align-self: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(251, 188, 4, 0.3);
+}
+
+.auth-btn-modern:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 188, 4, 0.5);
+  filter: brightness(1.05);
+}
+
+.auth-btn-modern:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-link-modern {
+  color: #fbbc04;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.auth-link-modern:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
 }
 
 .project-home {

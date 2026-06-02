@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { CourseController } from '../controllers/courseController';
-import { authGuard, requireRole } from '../middleware/auth';
+import { authGuard, requireRole, optional } from '../middleware/auth';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -16,7 +16,7 @@ const limiter = rateLimit({
 // ============ COURSE ENDPOINTS ============
 
 // GET /courses - List all courses
-router.get('/courses', limiter, controller.listCourses.bind(controller));
+router.get('/courses', limiter, optional, controller.listCourses.bind(controller));
 
 // GET /courses/enrolled - List courses student is enrolled in
 router.get('/courses/enrolled', limiter, authGuard, controller.listEnrolledCourses.bind(controller));

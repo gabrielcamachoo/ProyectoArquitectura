@@ -18,7 +18,6 @@ test.describe('Critical Flows & Performance', () => {
     });
     const student = await studentReg.json();
     const studentId = student.id;
-    const courseId = 'course-' + Date.now();
 
     const studentLogin = await request.post(`${AUTH_API}/auth/login`, {
       data: {
@@ -48,6 +47,17 @@ test.describe('Critical Flows & Performance', () => {
     });
     const { accessToken: teacherToken } = await teacherLogin.json();
 
+    // Create a real course
+    const courseRes = await request.post('http://localhost:3001/courses', {
+      headers: { Authorization: `Bearer ${teacherToken}` },
+      data: {
+        name: 'Critical Flow Course',
+        description: 'Mock course for critical flows E2E',
+      },
+    });
+    const course = await courseRes.json();
+    const courseId = course.id;
+
     // Create evaluation
     const evalRes = await request.post(`${ASSESSMENT_API}/evaluations`, {
       headers: { Authorization: `Bearer ${teacherToken}` },
@@ -59,6 +69,7 @@ test.describe('Critical Flows & Performance', () => {
         deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       },
     });
+    expect(evalRes.status()).toBe(201);
     const evaluation = await evalRes.json();
     const evaluationId = evaluation.id;
 
@@ -73,8 +84,13 @@ test.describe('Critical Flows & Performance', () => {
     const attempt = await attemptRes.json();
     const attemptId = attempt.id;
 
+    // Start attempt
+    await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/start`, {
+      headers: { Authorization: `Bearer ${studentToken}` },
+    });
+
     // Submit attempt
-    await request.put(`${ASSESSMENT_API}/attempts/${attemptId}/submit`, {
+    await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/submit`, {
       headers: { Authorization: `Bearer ${studentToken}` },
       data: { answers: [{ q: 'a1' }] },
     });
@@ -82,7 +98,7 @@ test.describe('Critical Flows & Performance', () => {
     // CRITICAL: Grade attempt - must return <2s without waiting for RabbitMQ
     const startTime = Date.now();
 
-    const gradeRes = await request.put(`${ASSESSMENT_API}/attempts/${attemptId}/grade`, {
+    const gradeRes = await request.post(`${ASSESSMENT_API}/attempts/${attemptId}/grade`, {
       headers: { Authorization: `Bearer ${teacherToken}` },
       data: { score: 92 },
     });
@@ -92,7 +108,7 @@ test.describe('Critical Flows & Performance', () => {
 
     expect(gradeRes.status()).toBe(200);
     const graded = await gradeRes.json();
-    expect(graded.score).toBe(92);
+    expect(graded.attempt.score).toBe(92);
 
     // CRITICAL REQUIREMENT: DR-01 - Must return in <2s
     expect(elapsedTime).toBeLessThan(2000);
@@ -262,8 +278,8 @@ test.describe('Critical Flows & Performance', () => {
     const error = await response.json();
 
     // Verify error format
-    expect(error).toHaveProperty('message');
-    console.log(`✅ Error format consistent: ${error.message}`);
+    expect(error).toHaveProperty('error');
+    console.log(`✅ Error format consistent: ${error.error}`);
   });
 
   test('End-to-end student workflow', async ({ request }) => {

@@ -38,9 +38,9 @@ test.describe('Analytics Dashboard (CQRS + Read Replica)', () => {
 
     if (response.status() === 200) {
       const dashboard = await response.json();
-      expect(dashboard).toHaveProperty('completion_rate');
-      expect(dashboard).toHaveProperty('avg_score');
-      expect(dashboard).toHaveProperty('active_students');
+      expect(dashboard).toHaveProperty('completionRate');
+      expect(dashboard).toHaveProperty('averageScore');
+      expect(dashboard).toHaveProperty('activeStudents');
     }
   });
 
@@ -95,19 +95,19 @@ test.describe('Analytics Dashboard (CQRS + Read Replica)', () => {
     if (response.status() === 200) {
       const dashboard = await response.json();
 
-      if (dashboard.completion_rate !== undefined) {
-        expect(typeof dashboard.completion_rate).toBe('number');
-        expect(dashboard.completion_rate).toBeGreaterThanOrEqual(0);
-        expect(dashboard.completion_rate).toBeLessThanOrEqual(100);
+      if (dashboard.completionRate !== undefined) {
+        expect(typeof dashboard.completionRate).toBe('number');
+        expect(dashboard.completionRate).toBeGreaterThanOrEqual(0);
+        expect(dashboard.completionRate).toBeLessThanOrEqual(100);
       }
 
-      if (dashboard.avg_score !== undefined) {
-        expect(typeof dashboard.avg_score).toBe('number');
+      if (dashboard.averageScore !== undefined) {
+        expect(typeof dashboard.averageScore).toBe('number');
       }
 
-      if (dashboard.active_students !== undefined) {
-        expect(typeof dashboard.active_students).toBe('number');
-        expect(dashboard.active_students).toBeGreaterThanOrEqual(0);
+      if (dashboard.activeStudents !== undefined) {
+        expect(typeof dashboard.activeStudents).toBe('number');
+        expect(dashboard.activeStudents).toBeGreaterThanOrEqual(0);
       }
     }
   });

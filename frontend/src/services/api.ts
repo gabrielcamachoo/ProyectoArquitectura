@@ -93,8 +93,15 @@ export const assessmentsAPI = {
   create: (data: object) => apiInstance.post('/evaluations', data),
   get: (id: string) => apiInstance.get(`/evaluations/${id}`),
   list: () => apiInstance.get('/evaluations'),
-  startAttempt: (assessmentId: string) =>
-    apiInstance.post(`/evaluations/${assessmentId}/attempts`),
+  startAttempt: async (assessmentId: string) => {
+    // 1. Create the attempt
+    const res = await apiInstance.post(`/evaluations/${assessmentId}/attempts`);
+    const attemptId = res.data.id;
+    // 2. Start the attempt to mark it as in_progress
+    await apiInstance.post(`/attempts/${attemptId}/start`);
+    // Return the created attempt
+    return res;
+  },
   submit: (attemptId: string, answers: object[]) =>
     apiInstance.post(`/attempts/${attemptId}/submit`, { answers }),
   grade: (attemptId: string, score: number, feedback: string) =>
@@ -167,7 +174,7 @@ export const api = {
   createEvaluation: (data: any) => assessmentsAPI.create(data).then(res => res.data),
   startAttempt: (evaluationId: string, _studentId: string, _courseId?: string) => assessmentsAPI.startAttempt(evaluationId).then(res => res.data),
   submitAttempt: (attemptId: string) => assessmentsAPI.submit(attemptId, []).then(res => res.data),
-  gradeAttempt: (attemptId: string, score: number) => assessmentsAPI.grade(attemptId, score, '').then(res => res.data),
+  gradeAttempt: (attemptId: string, score: number) => assessmentsAPI.grade(attemptId, score, '').then(res => res.data.attempt || res.data),
   getCourseProgress: (studentId: string, _courseId: string) => progressAPI.getStudentProgress(studentId).then(res => ({ item: res.data })),
   getStudentProgress: (studentId: string) => progressAPI.getStudentProgress(studentId).then(res => res.data),
   getRecommendations: (studentId: string) => adaptiveAPI.getRecommendations(studentId).then(data => data[0] || null),

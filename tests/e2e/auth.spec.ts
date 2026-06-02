@@ -94,15 +94,15 @@ test.describe('Authentication Flow', () => {
 
     // Navigate to login
     await page.goto(`${FRONTEND_BASE}/login`);
-    await expect(page.locator('text=Log In')).toBeVisible();
+    await expect(page.locator('text=Iniciar sesión')).toBeVisible();
 
     // Fill login form
     await page.fill('input[type="email"]', email);
     await page.fill('input[type="password"]', 'FrontendPass123!');
     await page.click('button[type="submit"]');
 
-    // Verify redirect to dashboard
-    await page.waitForURL('**/dashboard');
-    await expect(page).toHaveURL(/\/dashboard/);
+    // Verify redirect to app
+    await page.waitForURL('**/app/**');
+    await expect(page).toHaveURL(/\/app/);
   });
 });
