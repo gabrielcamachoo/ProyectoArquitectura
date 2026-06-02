@@ -149,6 +149,16 @@ services:
     ports:
       - '3007:3000'
 
+  dotnet-service:
+    build: ./services/dotnet-service
+    ports:
+      - '5000:5000'
+
+  jee-service:
+    build: ./services/jee-service
+    ports:
+      - '8081:8081'
+
   frontend:
     build: ./frontend
     environment:

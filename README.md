@@ -40,6 +40,8 @@ Servicios principales:
 - Frontend: `http://localhost:5173`
 - Auth directo (sin gateway): `http://localhost:3000/health`
 - RabbitMQ UI: `http://localhost:15672` (guest/guest)
+- .NET demo: `http://localhost:5000/health`
+- JEE demo: `http://localhost:8081/health`
 
 ## Uso de la plataforma (frontend)
 
@@ -66,6 +68,23 @@ Puertos de microservicios (acceso directo en desarrollo): 3000–3007.
 - **Kong JWT (producción)**: rutas públicas solo `POST /auth/register`, `/auth/login`, `/auth/refresh`; el resto exige `Authorization: Bearer` con RS256 (`iss: auth-jwt-key`)
 
 Sin claves JWT, Kong arranca en modo `kong.dev.yml` (sin validación en gateway).
+
+## Servicios locales adicionales
+
+### .NET local
+
+- `cd services/dotnet-service`
+- `dotnet run --project DotnetService.csproj`
+
+Servicio .NET disponible en `http://localhost:5000`
+
+### JEE local
+
+- `cd services/jee-service`
+- `mvn package`
+- `java -jar target/jee-service-1.0.0.jar`
+
+Servicio JEE disponible en `http://localhost:8081`
 
 ## Ejecución de pruebas
 

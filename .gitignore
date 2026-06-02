@@ -4,3 +4,8 @@ dist
 .env
 kong/jwt-private.pem
 *.log
+
+# Local build outputs for added backends
+services/dotnet-service/bin/
+services/dotnet-service/obj/
+services/jee-service/target/
