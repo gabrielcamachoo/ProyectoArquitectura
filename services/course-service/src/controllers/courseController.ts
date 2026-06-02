@@ -120,16 +120,31 @@ export class CourseController {
    */
   async enrollStudent(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { courseId } = req.params;
+      const courseId = req.params.courseId;
       const studentId = req.userId;
-      
+
       if (!studentId) {
         res.status(401).json({ error: 'unauthorized' });
         return;
       }
 
       await this.service.enrollStudent(courseId, studentId);
-      res.status(200).json({ message: 'enrolled_successfully', courseId, studentId });
+      
+      // Notify the student
+      fetch('http://notification-service:3000/notifications', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': req.headers.authorization || ''
+        },
+        body: JSON.stringify({
+          userId: studentId,
+          type: 'course_enrollment',
+          content: { message: 'Te has inscrito exitosamente al curso.' }
+        })
+      }).catch(err => console.error('Error notifying student:', err));
+
+      res.status(200).json({ ok: true });
     } catch (error: any) {
       const statusCode = error.message === 'course_not_found' ? 404 : 500;
       res.status(statusCode).json({ error: error.message });

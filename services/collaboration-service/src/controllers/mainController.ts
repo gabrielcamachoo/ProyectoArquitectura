@@ -50,12 +50,33 @@ export const listForumPosts = async (req: AuthRequest, res: Response) => {
 export const createForumPost = async (req: AuthRequest, res: Response) => {
   try {
     const post = await service.createForumPost(req.params.id, {
-      authorId: req.body.authorId ?? req.userId ?? 'anonymous',
+      authorId: req.body.authorId || req.userId || 'unknown',
       content: req.body.content
     });
+
+    // Notify all students
+    fetch('http://auth-service:3000/auth/users')
+      .then(r => r.json())
+      .then((data: any) => {
+        const students = data.items?.filter((u: any) => u.role === 'student') || [];
+        for (const s of students) {
+          if (s.id !== (req.body.authorId || req.userId)) {
+            fetch('http://notification-service:3000/notifications', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: s.id,
+                type: 'new_forum_post',
+                content: { message: `Nuevo mensaje en el foro.` }
+              })
+            }).catch(console.error);
+          }
+        }
+      }).catch(console.error);
+
     res.status(201).json(post);
   } catch (error) {
-    handleError(res, error);
+    res.status(500).json({ error: 'internal_error' });
   }
 };
 
