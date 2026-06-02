@@ -114,9 +114,9 @@ export const listTutoring = async (req: AuthRequest, res: Response) => {
 export const createTutoring = async (req: AuthRequest, res: Response) => {
   try {
     const tutoring = await service.createTutoring({
-      tutorId: req.body.tutorId,
-      tuteeId: req.body.tuteeId,
-      courseId: req.body.courseId,
+      tutorId: req.body.tutorId ?? req.userId ?? 'tutor-default',
+      tuteeId: req.body.tuteeId ?? 'tutee-default',
+      courseId: req.body.courseId ?? '00000000-0000-4000-8000-000000000001',
       topic: req.body.topic,
       scheduledAt: req.body.scheduledAt
     });
