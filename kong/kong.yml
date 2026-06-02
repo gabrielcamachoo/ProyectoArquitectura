@@ -7,13 +7,13 @@ consumers:
         algorithm: RS256
         rsa_public_key: |
           -----BEGIN PUBLIC KEY-----
-          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1pg+R2dcxKb0VIphRZZ3
-          B4hQIhPJh0/y2n7xIWI6n6uBILJBdC+F8jzO4bDgXLsPmX1sLIHBRqI0tk0jT5kU
-          NcMXgAUU6/324y1Pcj5yJRcbiWqP136PniqJJwOwEiyd4x788Jk1EDt+KZaA/9pO
-          Yf2bRPDLEdVcYKHINiP31a8ovCSkp62IVg10xKYtBKQjF8mPKEiCij0l9LH9BCGO
-          M8hiuQCcLFqcNtoBAzNwX1gVdLmTUsfqmn+od7aPUhUfF+93dfdkbysY1PK3jFTp
-          4fnxyxnbeFMF23sM0CkBaoU9777hlx0UAGk+WLmR+usalMEfWAUzr0B/wn8wO+lH
-          RQIDAQAB
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuGk6lIdGQpX7nY6KdFXO
+          /ouxdVlyOqmvcvUdkO8SUIvEFpX/gotMB3niKMTNB1IhF8LwIue/xhMZNvaV7KAl
+          cGfdfYlgtS7VFr4Uru3sq7bVMs1kVbnDDJP32C10t4cyY/S65t866gUSS1fMfj0V
+          qGmLg5KfYxx7G89/oLakkZRGbrsfdfHsBrekFgLqcUZodxQXLzYChYnSX+/PIlHN
+          q6Ia/H3gyXg1Zg7JwzUHxq7yC0avi7HhrQogUxeIhMbPjA7JAmPxuvAB5RXINPNu
+          6+DVWwwpuZKe8FQn4jSxTQWTp5FhkUNHmfgL+K1NajwIIlDBhw8+O2vtBTe4P7WX
+          9wIDAQAB
           -----END PUBLIC KEY-----
 
 services:
@@ -27,6 +27,7 @@ services:
           - /auth/refresh
         methods:
           - POST
+          - OPTIONS
         strip_path: false
       - name: auth-protected
         paths:
@@ -34,6 +35,20 @@ services:
           - /auth/users
         strip_path: false
         plugins:
+          - name: cors
+            config:
+              origins:
+              - http://localhost:5173
+              methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              headers:
+              - Authorization
+              - Content-Type
+              credentials: true
           - name: jwt
             config:
               key_claim_name: iss

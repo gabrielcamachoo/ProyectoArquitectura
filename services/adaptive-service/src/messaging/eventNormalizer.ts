@@ -25,8 +25,16 @@ export type RawEvaluationEvent =
     };
 
 export function normalizeEvaluationEvent(raw: RawEvaluationEvent): EvaluationCompletedEvent {
-  if ('version' in raw && raw.version === 'v1' && raw.student_id) {
-    return raw;
+  if ('version' in raw && raw.version === 'v1' && ('studentId' in raw || 'student_id' in raw)) {
+    const r = raw as any;
+    return {
+      version: 'v1',
+      studentId: r.studentId ?? r.student_id,
+      evaluationId: r.evaluationId ?? r.evaluation_id,
+      courseId: r.courseId ?? r.course_id,
+      score: r.score,
+      submittedAt: r.submittedAt ?? r.submitted_at ?? new Date().toISOString()
+    };
   }
 
   // RF-03 contract from the demo prompt
@@ -41,11 +49,11 @@ export function normalizeEvaluationEvent(raw: RawEvaluationEvent): EvaluationCom
     }
     return {
       version: 'v1',
-      student_id: studentId,
-      evaluation_id: evaluationId,
-      course_id: courseId,
+      studentId,
+      evaluationId,
+      courseId,
       score,
-      submitted_at: new Date().toISOString()
+      submittedAt: new Date().toISOString()
     };
   }
 
@@ -65,10 +73,10 @@ export function normalizeEvaluationEvent(raw: RawEvaluationEvent): EvaluationCom
 
   return {
     version: 'v1',
-    student_id: studentId,
-    evaluation_id: evaluationId,
-    course_id: courseId,
+    studentId,
+    evaluationId,
+    courseId,
     score,
-    submitted_at: submittedAt
+    submittedAt
   };
 }

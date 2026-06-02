@@ -80,10 +80,10 @@ export class TypeORMCourseRepository {
       query = query.where('course.status = :status', { status: filter.status });
     }
     if (filter?.createdBy) {
-      query = query.andWhere('course.created_by = :createdBy', { createdBy: filter.createdBy });
+      query = query.andWhere('course.createdBy = :createdBy', { createdBy: filter.createdBy });
     }
 
-    const courses = await query.orderBy('course.created_at', 'DESC').getMany();
+    const courses = await query.orderBy('course.createdAt', 'DESC').getMany();
     return courses.map(c => this.entityToCourse(c));
   }
 

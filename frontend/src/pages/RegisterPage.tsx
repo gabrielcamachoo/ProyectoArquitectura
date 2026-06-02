@@ -5,7 +5,7 @@ import { authAPI } from '../services/api';
 export default function RegisterPage() {
   const [form, setForm] = useState({
     name: '', email: '', password: '',
-    role: 'student', consent_accepted: false,
+    role: 'student', consentAccepted: false,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,7 +13,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.consent_accepted) {
+    if (!form.consentAccepted) {
       setError('Debes aceptar el tratamiento de datos personales (Ley 1581)');
       return;
     }
@@ -64,9 +64,9 @@ export default function RegisterPage() {
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'flex-start', background: 'var(--bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
             <input type="checkbox" id="consent"
-              checked={form.consent_accepted}
+              checked={form.consentAccepted}
               onChange={e => setForm(f =>
-                ({ ...f, consent_accepted: e.target.checked }))}
+                ({ ...f, consentAccepted: e.target.checked }))}
               style={{ marginTop: 3, cursor: 'pointer' }} />
             <label htmlFor="consent" style={{ fontSize:13, color:'var(--text-muted)', cursor: 'pointer', lineHeight: '1.4' }}>
               Acepto el tratamiento de mis datos personales conforme a la

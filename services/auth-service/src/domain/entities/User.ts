@@ -7,12 +7,32 @@ export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'bytea', transformer: { to: (v: string) => Buffer.from(v), from: (v: Buffer) => v.toString() } })
+  @Column({
+    type: 'bytea',
+    name: 'full_name',
+    transformer: {
+      to: (v: string) => Buffer.from(v),
+      from: (v: Buffer) => v.toString()
+    }
+  })
   fullName: string;
 
-  @Column({ type: 'bytea', name: 'institutional_email', transformer: { to: (v: string) => Buffer.from(v), from: (v: Buffer) => v.toString() } })
+  @Column({
+    type: 'bytea',
+    name: 'institutional_email',
+    transformer: {
+      to: (v: string) => Buffer.from(v),
+      from: (v: Buffer) => v.toString()
+    }
+  })
   institutionalEmail: string;
 
+  @Column({
+    type: 'boolean',
+    name: 'consent',
+    default: false
+  })
+  consentAccepted: boolean;
   @Column({ type: 'text', name: 'password_hash' })
   passwordHash: string;
 
@@ -22,8 +42,7 @@ export class UserEntity {
   @Column({ type: 'varchar', length: 30, default: 'active' })
   status: 'active' | 'inactive';
 
-  @Column({ type: 'boolean', default: false, name: 'consent_accepted' })
-  consentAccepted: boolean;
+
 
   @Column({ type: 'timestamp', nullable: true, name: 'consent_accepted_at' })
   consentAcceptedAt: Date | null;

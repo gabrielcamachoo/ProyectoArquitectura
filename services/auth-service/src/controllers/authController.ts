@@ -11,7 +11,7 @@ export class AuthController {
       // Demo: name, email, consent_accepted
       const fullName = req.body.fullName ?? req.body.name;
       const institutionalEmail = req.body.institutionalEmail ?? req.body.email;
-      const consentAccepted = req.body.consent_accepted ?? req.body.consentAccepted;
+      const consentAccepted = req.body.consentAccepted ?? req.body.consent_accepted;
 
       if (consentAccepted === false) {
         return res.status(400).json({ error: 'consent_required' });

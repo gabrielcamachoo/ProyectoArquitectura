@@ -1,10 +1,10 @@
 export interface EvaluationCompletedEvent {
   version: 'v1';
-  student_id: string;
-  evaluation_id: string;
-  course_id: string;
+  studentId: string;
+  evaluationId: string;
+  courseId: string;
   score: number;
-  submitted_at: string;
+  submittedAt: string;
 }
 
 // RF-04 contract: score <60 refuerzo, 60-85 suplementario, >85 profundización
@@ -73,9 +73,9 @@ export function computeRecommendation(event: EvaluationCompletedEvent): Recommen
   const rule = RULES.find((r) => event.score < r.maxScore) ?? RULES[RULES.length - 1];
 
   return {
-    studentId: event.student_id,
-    courseId: event.course_id,
-    evaluationId: event.evaluation_id,
+    studentId: event.studentId,
+    courseId: event.courseId,
+    evaluationId: event.evaluationId,
     type: rule.type,
     scope: rule.scope,
     score: event.score,

@@ -40,9 +40,9 @@ export class RecommendationService {
     );
 
     this.breaker.fallback((event: EvaluationCompletedEvent) => ({
-      studentId: event.student_id,
-      courseId: event.course_id,
-      evaluationId: event.evaluation_id,
+      studentId: event.studentId,
+      courseId: event.courseId,
+      evaluationId: event.evaluationId,
       type: 'recurso_complementario',
       scope: 'related_courses',
       score: event.score,
@@ -71,8 +71,8 @@ export class RecommendationService {
       const stored = await repo.save({ ...output, fallback });
 
       const cachePayload = JSON.stringify([stored]);
-      await this.set(`recommendations:${event.student_id}`, cachePayload, CACHE_TTL_SECONDS);
-      await this.set(`dashboard:${event.course_id}`, cachePayload, CACHE_TTL_SECONDS);
+      await this.set(`recommendations:${event.studentId}`, cachePayload, CACHE_TTL_SECONDS);
+      await this.set(`dashboard:${event.courseId}`, cachePayload, CACHE_TTL_SECONDS);
 
       await publishRecommendationGenerated({
         event: 'recomendacion.generada.v1',

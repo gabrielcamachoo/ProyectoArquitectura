@@ -102,13 +102,13 @@ export class TypeORMAssessmentRepository {
   }
 
   async listEvaluationsByCourse(courseId: string, filters?: { status?: string }): Promise<EvaluationDTO[]> {
-    let query = this.evaluationRepo.createQueryBuilder('e').where('e.course_id = :courseId', { courseId });
+    let query = this.evaluationRepo.createQueryBuilder('e').where('e.courseId = :courseId', { courseId });
 
     if (filters?.status) {
       query = query.andWhere('e.status = :status', { status: filters.status });
     }
 
-    const evals = await query.orderBy('e.created_at', 'DESC').getMany();
+    const evals = await query.orderBy('e.createdAt', 'DESC').getMany();
     return evals.map(e => this.entityToEvaluation(e));
   }
 

@@ -49,13 +49,13 @@ apiInstance.interceptors.response.use(
 export const authAPI = {
   register: (data: {
     name?: string; email?: string; fullName?: string; institutionalEmail?: string; password: string;
-    role: string; consent_accepted: boolean;
+    role: string; consentAccepted: boolean;
   }) => apiInstance.post('/auth/register', {
     fullName: data.name ?? data.fullName,
     institutionalEmail: data.email ?? data.institutionalEmail,
     password: data.password,
     role: data.role,
-    consent_accepted: data.consent_accepted,
+    consentAccepted: data.consentAccepted,
   }),
 
   login: (institutionalEmail: string, password: string) =>
@@ -143,7 +143,7 @@ export const collaborationAPI = {
 
 // ─── LEGACY NAMED API BRIDGE ───
 export const api = {
-  register: (data: any) => authAPI.register({ name: data.fullName, email: data.institutionalEmail, password: data.password, role: data.role, consent_accepted: true }).then(res => res.data),
+  register: (data: any) => authAPI.register({ name: data.fullName, email: data.institutionalEmail, password: data.password, role: data.role, consentAccepted: true }).then(res => res.data),
   login: (email: string, password: string) => authAPI.login(email, password).then(res => ({ accessToken: res.data.accessToken, refreshToken: res.data.refreshToken, user: res.data.user })),
   logout: () => authAPI.logout().then(res => res.data),
   getCourses: () => coursesAPI.list().then(res => ({ courses: res.data.courses })),

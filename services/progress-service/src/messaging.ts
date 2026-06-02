@@ -12,8 +12,8 @@ export async function startProgressConsumer(url?: string) {
   await ch.consume(queue, (msg) => {
     if (!msg) return;
     try {
-      const event = JSON.parse(msg.content.toString()) as { student_id: string; course_id: string; score: number };
-      recordEvaluationCompletion({ studentId: event.student_id, courseId: event.course_id, score: event.score });
+      const event = JSON.parse(msg.content.toString()) as { studentId?: string; student_id?: string; courseId?: string; course_id?: string; score: number };
+      recordEvaluationCompletion({ studentId: event.studentId ?? event.student_id ?? '', courseId: event.courseId ?? event.course_id ?? '', score: event.score });
     } catch {
       console.log(JSON.stringify({ level: 'error', category: 'technical_log', event: 'progress-dlq', requestId: msg.properties.messageId ?? 'n/a' }));
     }

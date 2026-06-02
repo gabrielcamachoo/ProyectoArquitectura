@@ -5,17 +5,11 @@ export interface CourseDashboardData {
   readDb: string;
   courseId: string;
   completionRate: number;
-  completion_rate: number;
   activeStudents: number;
-  active_students: number;
   averageScore: number;
-  avg_score: number;
   evaluationsSubmitted: number;
-  evaluations_submitted: number;
   recommendationsSent: number;
-  recommendations_sent: number;
   atRiskStudents: number;
-  at_risk_students: number;
   trend: 'up' | 'stable' | 'down';
 }
 
@@ -23,15 +17,11 @@ export interface StudentProgressData {
   source: string;
   readDb: string;
   courseId: string;
-  course_id: string;
   students: Array<{
     studentId: string;
-    student_id: string;
     fullName: string;
-    full_name: string;
     percentage: number;
     lastActivity: string;
-    last_activity: string;
   }>;
 }
 
@@ -106,7 +96,6 @@ export class TypeORMAnalyticsRepository {
           source: 'read-replica',
           readDb: this.readDbUrl,
           courseId,
-          course_id: courseId,
           students: result.map((row: Record<string, unknown>, idx: number) => {
             const studentId = String(row.student_id ?? `estudiante-${idx + 1}`);
             const fullName = String(row.student_name ?? `Estudiante ${idx + 1}`);
@@ -117,12 +106,9 @@ export class TypeORMAnalyticsRepository {
 
             return {
               studentId,
-              student_id: studentId,
               fullName,
-              full_name: fullName,
               percentage,
-              lastActivity,
-              last_activity: lastActivity
+              lastActivity
             };
           })
         };
@@ -136,7 +122,6 @@ export class TypeORMAnalyticsRepository {
       source: 'read-replica',
       readDb: this.readDbUrl,
       courseId,
-      course_id: courseId,
       students: demo
     };
   }
@@ -159,17 +144,11 @@ export class TypeORMAnalyticsRepository {
       readDb: this.readDbUrl,
       courseId,
       completionRate,
-      completion_rate: completionRate,
       activeStudents,
-      active_students: activeStudents,
       averageScore,
-      avg_score: averageScore,
       evaluationsSubmitted,
-      evaluations_submitted: evaluationsSubmitted,
       recommendationsSent,
-      recommendations_sent: recommendationsSent,
       atRiskStudents,
-      at_risk_students: atRiskStudents,
       trend: completionRate > 70 ? 'up' : completionRate > 50 ? 'stable' : 'down'
     };
   }
@@ -184,12 +163,9 @@ export class TypeORMAnalyticsRepository {
 
       return {
         studentId,
-        student_id: studentId,
         fullName,
-        full_name: fullName,
         percentage,
-        lastActivity,
-        last_activity: lastActivity
+        lastActivity
       };
     });
   }
