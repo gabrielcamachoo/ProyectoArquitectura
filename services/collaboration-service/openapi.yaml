@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: Collaboration Service API
+  version: 1.0.0
+  description: Forums, study groups, and tutoring sessions
+servers:
+  - url: http://localhost:3005
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        authorId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    Forum:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+          enum: [active, archived]
+        moderatorId:
+          type: string
+          format: uuid
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForumPost'
+
+    StudyGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        leaderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, archived]
+
+    TutoringSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tutorId:
+          type: string
+          format: uuid
+        tuteeId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        scheduledAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled]
+
+paths:
+  /forums:
+    get:
+      summary: List all forums
+      tags: [Forums]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of forums
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Forum'
+
+    post:
+      summary: Create forum
+      tags: [Forums]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+      responses:
+        '201':
+          description: Forum created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forum'
+
+  /forums/{id}/posts:
+    get:
+      summary: List forum posts
+      tags: [Forums]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ForumPost'
+
+    post:
+      summary: Post to forum
+      tags: [Forums]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+
+  /study-groups:
+    get:
+      summary: List study groups
+      tags: [Study Groups]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of study groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudyGroup'
+
+    post:
+      summary: Create study group
+      tags: [Study Groups]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Study group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyGroup'
+
+  /tutoring:
+    get:
+      summary: List tutoring sessions
+      tags: [Tutoring]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of tutoring sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TutoringSession'
+
+    post:
+      summary: Schedule tutoring session
+      tags: [Tutoring]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tutorId:
+                  type: string
+                  format: uuid
+                courseId:
+                  type: string
+                  format: uuid
+                scheduledAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Session scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutoringSession'

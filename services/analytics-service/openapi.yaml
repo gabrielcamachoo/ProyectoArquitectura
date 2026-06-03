@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Analytics Service API
+  version: 1.0.0
+  description: CQRS read-replica with aggregated metrics and dashboards
+servers:
+  - url: http://localhost:3006
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CourseDashboard:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [read_replica, primary]
+        courseId:
+          type: string
+          format: uuid
+        completionRate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        activeStudents:
+          type: integer
+        averageScore:
+          type: number
+          format: float
+        evaluationsSubmitted:
+          type: integer
+        recommendationsSent:
+          type: integer
+        atRiskStudents:
+          type: integer
+        trend:
+          type: string
+          enum: [up, down, stable]
+
+    StudentProgress:
+      type: object
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        percentage:
+          type: number
+          format: float
+        lastActivity:
+          type: string
+          format: date-time
+
+paths:
+  /analytics/course/{courseId}:
+    get:
+      summary: Get course dashboard metrics
+      tags: [Analytics]
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Course analytics dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseDashboard'
+        '403':
+          description: Forbidden (teacher/admin of course)
+
+  /analytics/course/{courseId}/students:
+    get:
+      summary: Get student progress in course
+      tags: [Analytics]
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Student progress list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudentProgress'
+        '403':
+          description: Forbidden (teacher/admin of course)

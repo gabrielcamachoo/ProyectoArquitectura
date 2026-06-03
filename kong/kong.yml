@@ -1,0 +1,222 @@
+_format_version: '3.0'
+
+consumers:
+  - username: academic-platform
+    jwt_secrets:
+      - key: auth-jwt-key
+        algorithm: RS256
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu9xWW2cUJ3snu3iAotN8
+          m7Y/Iwpeepm5zlMuJjBu5cRph15aKrWr2sHDI7LTlWQ7NuuvLC1giRm6kl+DOuIj
+          bdMO8Aihft7g5Gmr48rO4aI8O4YhDnwnNMTDfjv4RpUxIjOFUGGYIxWL9lQDzq3n
+          dXBACgxXlEAuOzWBtnFbe7C8hwY1zEDyg5Q1PNSpMCwiDvZsTo5Zx5LjYREQZSBk
+          YEjm/HJvfqQ5rRu5SkytyiTYVxx+tkxyNeqvRvPzrJKKNGhg1jBd/MCxsl1ojSbZ
+          dyCTuOeRLjMDlHbhZiLbVlxN44qp+y9X6Ds2ty+lf6f/qjOaGZO9FhEd9CpTtje4
+          KQIDAQAB
+          -----END PUBLIC KEY-----
+
+services:
+  - name: auth-service
+    url: http://auth-service:3000
+    routes:
+      - name: auth-public
+        paths:
+          - /auth/register
+          - /auth/login
+          - /auth/refresh
+        methods:
+          - POST
+          - OPTIONS
+        strip_path: false
+      - name: auth-protected
+        paths:
+          - /auth/logout
+          - /auth/users
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: course-service
+    url: http://course-service:3000
+    routes:
+      - name: course-routes
+        paths:
+          - /courses
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: assessment-service
+    url: http://assessment-service:3000
+    routes:
+      - name: assessment-routes
+        paths:
+          - /evaluations
+          - /assessments
+          - /attempts
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: progress-service
+    url: http://progress-service:3000
+    routes:
+      - name: progress-routes
+        paths:
+          - /progress
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: adaptive-service
+    url: http://adaptive-service:3000
+    routes:
+      - name: adaptive-routes
+        paths:
+          - /recommendations
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: collaboration-service
+    url: http://collaboration-service:3000
+    routes:
+      - name: collaboration-routes
+        paths:
+          - /forums
+          - /study-groups
+          - /tutoring
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: analytics-service
+    url: http://analytics-service:3000
+    routes:
+      - name: analytics-routes
+        paths:
+          - /analytics
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+  - name: notification-service
+    url: http://notification-service:3000
+    routes:
+      - name: notification-routes
+        paths:
+          - /notifications
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: iss
+              claims_to_verify:
+                - exp
+
+plugins:
+  - name: correlation-id
+    config:
+      header_name: X-Request-Id
+      generator: uuid
+      echo_downstream: true
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local
+      limit_by: consumer
+  - name: cors
+    config:
+      origins:
+      - http://localhost:5173
+      methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+      - OPTIONS
+      headers:
+      - Authorization
+      - Content-Type
+      - Accept
+      - Origin
+      credentials: true
+      preflight_continue: false

@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  title: Adaptive Service API
+  version: 1.0.0
+  description: Recommendation engine with RabbitMQ consumer, circuit breaker, and Redis cache
+servers:
+  - url: http://localhost:3004
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Recommendation:
+      type: object
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [refuerzo, profundización, recurso_complementario]
+          description: "refuerzo (< 60%), profundización (60-80%), recurso_complementario (>80%)"
+        scope:
+          type: string
+          enum: [current_published_module, next_modules, related_courses]
+        resource:
+          type: object
+        reasoning:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+
+paths:
+  /recommendations/student/{studentId}:
+    get:
+      summary: Get student recommendations
+      tags: [Recommendations]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Student recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recommendation'
+        '403':
+          description: Forbidden (student sees own, teacher/admin see any)
+        '503':
+          description: Circuit breaker active (fallback recommendation returned)
